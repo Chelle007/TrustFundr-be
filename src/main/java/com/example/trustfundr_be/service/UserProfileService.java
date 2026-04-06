@@ -11,7 +11,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class UserProfileService {
 
-	private final UserProfileRepository userProfileRepository;
+    private final UserProfileRepository userProfileRepository;
 
 	public UserProfile seedUserProfile() {
 		UserProfile userProfile = new UserProfile();
