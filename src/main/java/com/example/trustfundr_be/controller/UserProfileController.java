@@ -6,7 +6,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
@@ -25,10 +24,6 @@ public class UserProfileController {
 
     private final UserProfileService userProfileService;
 
-    @Operation(
-            summary = "Create a user profile (admin only)",
-            description = "Requires an authenticated user whose profile is Admin (e.g. session cookie after POST /api/auth/login). "
-                    + "HTTP Basic also works if enabled on the server.")
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping
     public UserProfileResponse createUserProfile(@Valid @RequestBody CreateUserProfileRequest request) {
