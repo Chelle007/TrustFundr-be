@@ -22,10 +22,8 @@ public class AccountUserDetailsService implements UserDetailsService {
     @Override
     @Transactional(readOnly = true)
     public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        UserAccount account = userAccountRepository.findByUsername(username);
-        if (account == null) {
-            throw new UsernameNotFoundException("User not found");
-        }
+        UserAccount account = userAccountRepository.findByUsername(username)
+                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
         if (account.isDeleted()) {
             throw new DisabledException(
                     "User account has been deactivated. Please contact an administrator");

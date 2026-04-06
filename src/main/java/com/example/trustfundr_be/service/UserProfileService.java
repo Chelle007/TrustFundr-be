@@ -14,10 +14,12 @@ public class UserProfileService {
     private final UserProfileRepository userProfileRepository;
 
 	public UserProfile seedUserProfile() {
-		UserProfile userProfile = new UserProfile();
-		userProfile.setName("Admin");
-		userProfile.setDescription("User admin profile");
-		return userProfileRepository.save(userProfile);
+		return userProfileRepository.findByName("Admin").orElseGet(() -> {
+			UserProfile userProfile = new UserProfile();
+			userProfile.setName("Admin");
+			userProfile.setDescription("User admin profile");
+			return userProfileRepository.save(userProfile);
+		});
 	}
 
 }

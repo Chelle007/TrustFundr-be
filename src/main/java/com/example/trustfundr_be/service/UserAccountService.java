@@ -19,13 +19,16 @@ public class UserAccountService {
 	private final PasswordEncoder passwordEncoder;
 	
     public UserAccount seedUserAccount() {
-		UserAccount userAccount = new UserAccount();
-		UserProfile userProfile = userProfileRepository.findByName("Admin");
-		userAccount.setFullName("Michelle Chan");
-		userAccount.setUsername("admin");
-		userAccount.setPasswordHashString(passwordEncoder.encode("admin123"));
-		userAccount.setUserProfile(userProfile);
-		return userAccountRepository.save(userAccount);
+		return userAccountRepository.findByUsername("admin").orElseGet(() -> {
+			UserProfile userProfile = userProfileRepository.findByName("Admin")
+					.orElseThrow(() -> new IllegalStateException("Admin profile must exist before seeding admin account"));
+			UserAccount userAccount = new UserAccount();
+			userAccount.setFullName("Michelle Chan");
+			userAccount.setUsername("admin");
+			userAccount.setPasswordHashString(passwordEncoder.encode("admin123"));
+			userAccount.setUserProfile(userProfile);
+			return userAccountRepository.save(userAccount);
+		});
 	}
 
 }

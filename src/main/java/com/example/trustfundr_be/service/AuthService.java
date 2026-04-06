@@ -52,7 +52,8 @@ public class AuthService {
             throw new AuthException(BAD_CREDENTIALS);
         }
 
-        UserAccount userAccount = userAccountRepository.findByUsername(authentication.getName());
+        UserAccount userAccount = userAccountRepository.findByUsername(authentication.getName())
+                .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
         return modelMapper.map(userAccount, LoginResponse.class);
     }
 
