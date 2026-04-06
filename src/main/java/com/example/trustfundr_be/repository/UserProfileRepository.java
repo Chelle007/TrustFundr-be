@@ -9,4 +9,6 @@ import com.example.trustfundr_be.model.entity.UserProfile;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID> {
 	Optional<UserProfile> findByName(String name);
+
+	Optional<UserProfile> findByNameIgnoreCase(String name);
 }

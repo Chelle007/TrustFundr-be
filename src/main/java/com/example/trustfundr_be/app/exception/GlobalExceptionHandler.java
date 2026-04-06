@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
+import com.example.trustfundr_be.exception.UserProfileException;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
@@ -25,6 +26,12 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleAccountDisabled(AccountDisabledException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "Account disabled";
         return ResponseEntity.status(HttpStatus.FORBIDDEN).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(UserProfileException.class)
+    public ResponseEntity<Map<String, String>> handleUserProfileException(UserProfileException ex) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
+        return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
     }
 
     @ExceptionHandler(MethodArgumentNotValidException.class)

@@ -2,8 +2,13 @@ package com.example.trustfundr_be.service;
 
 import java.util.List;
 
+import org.springframework.http.HttpStatus;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
+import com.example.trustfundr_be.exception.UserProfileException;
+import com.example.trustfundr_be.model.dto.CreateUserProfileRequest;
+import com.example.trustfundr_be.model.dto.UserProfileResponse;
 import com.example.trustfundr_be.model.entity.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
@@ -33,6 +38,24 @@ public class UserProfileService {
                 return userProfileRepository.save(userProfile);
             });
         }
+    }
+
+    @Transactional
+    public UserProfileResponse createUserProfile(CreateUserProfileRequest request) {
+        String name = request.getName().trim();
+        if (name.isEmpty()) {
+            throw new UserProfileException(HttpStatus.BAD_REQUEST, "Name cannot be blank");
+        }
+        if (userProfileRepository.findByNameIgnoreCase(name).isPresent()) {
+            throw new UserProfileException(HttpStatus.CONFLICT, "A user profile with this name already exists");
+        }
+        
+        UserProfile userProfile = new UserProfile();
+        userProfile.setName(name);
+        userProfile.setDescription(request.getDescription());
+        UserProfile saved = userProfileRepository.save(userProfile);
+
+        return new UserProfileResponse(saved.getId(), saved.getName(), saved.getDescription());
     }
 
 }
