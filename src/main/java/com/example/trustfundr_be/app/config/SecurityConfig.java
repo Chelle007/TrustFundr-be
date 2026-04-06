@@ -32,6 +32,13 @@ public class SecurityConfig {
             "/swagger-resources"
     };
 
+    private static final String[] GET_WHITELIST = {
+    };
+
+    private static final String[] POST_WHITELIST = {
+            "/api/auth/login"
+    };
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http
@@ -40,6 +47,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
+                        .requestMatchers(GET_WHITELIST).permitAll()
+                        .requestMatchers(POST_WHITELIST).permitAll()
                         .anyRequest().authenticated())
                 .httpBasic(withDefaults());
 
