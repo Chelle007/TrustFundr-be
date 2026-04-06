@@ -13,6 +13,7 @@ import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.stereotype.Service;
 
+import com.example.trustfundr_be.app.security.JwtService;
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
 import com.example.trustfundr_be.model.dto.LoginRequest;
@@ -32,6 +33,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final UserAccountRepository userAccountRepository;
     private final ModelMapper modelMapper;
+    private final JwtService jwtService;
 
     public LoginResponse authenticate(LoginRequest loginRequest, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(
@@ -40,7 +42,6 @@ public class AuthService {
         try {
             authentication = authenticationManager.authenticate(token);
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            request.getSession(true);
         } catch (DisabledException e) {
             throw new AccountDisabledException(
                     e.getMessage() != null
@@ -54,7 +55,9 @@ public class AuthService {
 
         UserAccount userAccount = userAccountRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
-        return modelMapper.map(userAccount, LoginResponse.class);
+        LoginResponse response = modelMapper.map(userAccount, LoginResponse.class);
+        response.setToken(jwtService.generateToken((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()));
+        return response;
     }
 
     public LogoutResponse logout(HttpServletRequest request) {

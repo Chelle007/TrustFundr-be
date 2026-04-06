@@ -23,11 +23,11 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/user-profiles")
 public class UserProfileController {
 
-    private static final String BASIC_AUTH_SCHEME = "HTTP Basic";
+    private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
     private final UserProfileService userProfileService;
 
-    @SecurityRequirement(name = BASIC_AUTH_SCHEME)
+    @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('ADMIN')")
     @PostMapping("/create-user-profile")
     public UserProfileResponse createUserProfile(@Valid @RequestBody CreateUserProfileRequest request) {
