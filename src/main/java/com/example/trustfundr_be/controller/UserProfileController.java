@@ -6,6 +6,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 
 import jakarta.validation.Valid;
@@ -22,10 +23,13 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/user-profiles")
 public class UserProfileController {
 
+    private static final String BASIC_AUTH_SCHEME = "HTTP Basic";
+
     private final UserProfileService userProfileService;
 
+    @SecurityRequirement(name = BASIC_AUTH_SCHEME)
     @PreAuthorize("hasRole('ADMIN')")
-    @PostMapping
+    @PostMapping("/create-user-profile")
     public UserProfileResponse createUserProfile(@Valid @RequestBody CreateUserProfileRequest request) {
         return userProfileService.createUserProfile(request);
     }

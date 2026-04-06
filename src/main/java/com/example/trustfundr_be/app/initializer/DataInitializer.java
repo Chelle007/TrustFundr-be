@@ -16,7 +16,7 @@ public class DataInitializer implements CommandLineRunner {
     @Override
     public void run(String... args) throws Exception {
         userProfileService.seedUserProfiles();
-        userAccountService.seedUserAccount();
+        userAccountService.seedUserAccounts();
     }
 
 }
