@@ -68,19 +68,24 @@ class CreateUserProfileControllerTest {
 
         // Assert exception
         UserProfileException ex = assertThrows(UserProfileException.class, () -> controller.createUserProfile(req));
-        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus());
+        assertEquals(HttpStatus.BAD_REQUEST, ex.getStatus(), "Exception status should be BAD_REQUEST");
     }
 
     @Test
     void createUserProfile_duplicateName() {
+        // Mock user profile repository to return existing user profile
         when(userProfileRepository.findByNameIgnoreCase("Admin")).thenReturn(Optional.of(new UserProfile()));
 
+        // Create controller
         CreateUserProfileController controller = new CreateUserProfileController(userProfileRepository);
+
+        // Create request
         CreateUserProfileController.CreateUserProfileRequest req = new CreateUserProfileController.CreateUserProfileRequest();
         req.setName("Admin");
 
+        // Assert exception
         UserProfileException ex = assertThrows(UserProfileException.class, () -> controller.createUserProfile(req));
-        assertEquals(HttpStatus.CONFLICT, ex.getStatus());
+        assertEquals(HttpStatus.CONFLICT, ex.getStatus(), "Exception status should be CONFLICT");
     }
 }
 
