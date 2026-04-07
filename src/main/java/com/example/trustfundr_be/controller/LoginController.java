@@ -1,7 +1,6 @@
-package com.example.trustfundr_be.service;
+package com.example.trustfundr_be.controller;
 
-import jakarta.servlet.ServletException;
-import jakarta.servlet.http.HttpServletRequest;
+import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -11,22 +10,33 @@ import org.springframework.security.authentication.UsernamePasswordAuthenticatio
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.stereotype.Service;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+
+import io.swagger.v3.oas.annotations.security.SecurityRequirements;
+import io.swagger.v3.oas.annotations.tags.Tag;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
 
 import com.example.trustfundr_be.app.security.JwtService;
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
-import com.example.trustfundr_be.model.dto.LoginRequest;
-import com.example.trustfundr_be.model.dto.LoginResponse;
-import com.example.trustfundr_be.model.dto.LogoutResponse;
-import com.example.trustfundr_be.model.entity.UserAccount;
+import com.example.trustfundr_be.model.UserAccount;
 import com.example.trustfundr_be.repository.UserAccountRepository;
 
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
+@Tag(name = "Login")
 @RequiredArgsConstructor
-@Service
-public class AuthService {
+@RestController
+@RequestMapping("/api/auth")
+public class LoginController {
 
     private static final String BAD_CREDENTIALS = "Invalid username or password";
 
@@ -35,7 +45,29 @@ public class AuthService {
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
 
-    public LoginResponse authenticate(LoginRequest loginRequest, HttpServletRequest request) {
+    @Data
+    @NoArgsConstructor
+    public static class LoginRequest {
+
+        @NotBlank(message = "Username is required")
+        private String username;
+
+        @NotBlank(message = "Password is required")
+        private String password;
+    }
+
+    @Data
+    @NoArgsConstructor
+    public static class LoginResponse {
+        private UUID id;
+        private String fullName;
+        private String username;
+        private String token;
+    }
+
+    @SecurityRequirements
+    @PostMapping("/login")
+    public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(
                 loginRequest.getUsername(), loginRequest.getPassword());
         Authentication authentication;
@@ -58,14 +90,5 @@ public class AuthService {
         LoginResponse response = modelMapper.map(userAccount, LoginResponse.class);
         response.setToken(jwtService.generateToken((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()));
         return response;
-    }
-
-    public LogoutResponse logout(HttpServletRequest request) {
-        SecurityContextHolder.clearContext();
-        try {
-            request.logout();
-        } catch (ServletException ignored) {
-        }
-        return new LogoutResponse("Logged out successfully");
     }
 }

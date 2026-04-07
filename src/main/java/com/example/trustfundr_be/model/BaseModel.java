@@ -1,4 +1,4 @@
-package com.example.trustfundr_be.model.entity;
+package com.example.trustfundr_be.model;
 
 import java.time.Instant;
 import java.util.UUID;
@@ -24,7 +24,7 @@ import lombok.Setter;
 @MappedSuperclass
 @EntityListeners(AuditingEntityListener.class)
 @SQLRestriction("deleted_at IS NULL")
-public abstract class BaseEntity {
+public abstract class BaseModel {
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.UUID)

@@ -3,20 +3,20 @@ package com.example.trustfundr_be.app.initializer;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
-import com.example.trustfundr_be.service.UserProfileService;
-import com.example.trustfundr_be.service.UserAccountService;
+import com.example.trustfundr_be.seeder.UserAccountSeeder;
+import com.example.trustfundr_be.seeder.UserProfileSeeder;
 
 @Component
 @RequiredArgsConstructor
 public class DataInitializer implements CommandLineRunner {
 
-    private final UserProfileService userProfileService;
-    private final UserAccountService userAccountService;
+    private final UserProfileSeeder userProfileSeeder;
+    private final UserAccountSeeder userAccountSeeder;
 
     @Override
     public void run(String... args) throws Exception {
-        userProfileService.seedUserProfiles();
-        userAccountService.seedUserAccounts();
+        userProfileSeeder.seedUserProfiles();
+        userAccountSeeder.seedUserAccounts();
     }
 
 }

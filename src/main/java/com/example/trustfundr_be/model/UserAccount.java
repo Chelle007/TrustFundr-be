@@ -1,4 +1,4 @@
-package com.example.trustfundr_be.model.entity;
+package com.example.trustfundr_be.model;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -15,7 +15,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserAccount extends BaseEntity {
+public class UserAccount extends BaseModel {
 
 	@Column(nullable = false)
 	private String fullName;
