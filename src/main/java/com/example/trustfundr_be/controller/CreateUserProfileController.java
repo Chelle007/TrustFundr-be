@@ -55,6 +55,7 @@ public class CreateUserProfileController {
     @PostMapping("/create-user-profile")
     @Transactional
     public CreateUserProfileResponse createUserProfile(@Valid @RequestBody CreateUserProfileRequest request) {
+        // Validate request body
         String name = request.getName().trim();
         if (name.isEmpty()) {
             throw new UserProfileException(HttpStatus.BAD_REQUEST, "Name cannot be blank");
@@ -63,9 +64,12 @@ public class CreateUserProfileController {
             throw new UserProfileException(HttpStatus.CONFLICT, "A user profile with this name already exists");
         }
 
+        // Create user profile
         UserProfile userProfile = new UserProfile();
         userProfile.setName(name);
         userProfile.setDescription(request.getDescription());
+
+        // Save user profile
         UserProfile saved = userProfileRepository.save(userProfile);
 
         return new CreateUserProfileResponse(saved.getId(), saved.getName(), saved.getDescription());

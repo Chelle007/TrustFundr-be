@@ -22,11 +22,15 @@ public class LogoutController {
     @SecurityRequirements
     @PostMapping("/logout")
     public LogoutResponse logout(HttpServletRequest request) {
+        // Clear security context
         SecurityContextHolder.clearContext();
+
+        // Logout user
         try {
             request.logout();
         } catch (ServletException ignored) {
         }
+        
         return new LogoutResponse("Logged out successfully");
     }
 }
