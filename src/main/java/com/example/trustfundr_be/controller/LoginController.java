@@ -68,8 +68,11 @@ public class LoginController {
     @SecurityRequirements
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
+        // Validate request body
         UsernamePasswordAuthenticationToken token = UsernamePasswordAuthenticationToken.unauthenticated(
                 loginRequest.getUsername(), loginRequest.getPassword());
+
+        // Authenticate user
         Authentication authentication;
         try {
             authentication = authenticationManager.authenticate(token);
@@ -85,10 +88,14 @@ public class LoginController {
             throw new AuthException(BAD_CREDENTIALS);
         }
 
+        // Find user account
         UserAccount userAccount = userAccountRepository.findByUsername(authentication.getName())
                 .orElseThrow(() -> new IllegalStateException("Authenticated user not found in database"));
         LoginResponse response = modelMapper.map(userAccount, LoginResponse.class);
+
+        // Generate token
         response.setToken(jwtService.generateToken((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()));
+        
         return response;
     }
 }
