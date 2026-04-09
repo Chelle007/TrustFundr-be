@@ -9,7 +9,7 @@ import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 @SpringBootApplication
 @EnableJpaAuditing
-@PropertySource("file:${user.dir}/.env") // FOR LOCAL NOT PRODUCTION
+@PropertySource(value = "file:${user.dir}/.env", ignoreResourceNotFound = true) // FOR LOCAL NOT PRODUCTION
 public class TrustfundrBeApplication {
 
 	public static void main(String[] args) {
