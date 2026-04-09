@@ -12,9 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
-
-
-
+ 
 @ExtendWith(MockitoExtension.class)
 class LogoutControllerTest {
 
