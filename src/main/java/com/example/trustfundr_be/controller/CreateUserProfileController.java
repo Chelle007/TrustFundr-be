@@ -2,6 +2,7 @@ package com.example.trustfundr_be.controller;
 
 import java.util.UUID;
 
+import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
@@ -34,6 +35,7 @@ public class CreateUserProfileController {
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
     private final UserProfileRepository userProfileRepository;
+    private final ModelMapper modelMapper;
 
     @Data
     @NoArgsConstructor
@@ -47,7 +49,12 @@ public class CreateUserProfileController {
         private String description;
     }
 
-    public record CreateUserProfileResponse(UUID id, String name, String description) {
+    @Data
+    @NoArgsConstructor
+    public static class CreateUserProfileResponse {
+        private UUID id;
+        private String name;
+        private String description;
     }
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
@@ -72,7 +79,7 @@ public class CreateUserProfileController {
         // Save user profile
         UserProfile saved = userProfileRepository.save(userProfile);
 
-        return new CreateUserProfileResponse(saved.getId(), saved.getName(), saved.getDescription());
+        return modelMapper.map(saved, CreateUserProfileResponse.class);
     }
 }
 
