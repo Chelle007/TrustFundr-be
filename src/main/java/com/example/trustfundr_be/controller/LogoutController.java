@@ -30,7 +30,8 @@ public class LogoutController {
             request.logout();
         } catch (ServletException ignored) {
         }
-        
+
+        // Return response
         return new LogoutResponse("Logged out successfully");
     }
 }

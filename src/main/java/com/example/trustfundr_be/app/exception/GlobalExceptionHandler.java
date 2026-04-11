@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
+import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.exception.UserProfileException;
 
 @RestControllerAdvice
@@ -30,6 +31,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(UserProfileException.class)
     public ResponseEntity<Map<String, String>> handleUserProfileException(UserProfileException ex) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
+        return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(UserAccountException.class)
+    public ResponseEntity<Map<String, String>> handleUserAccountException(UserAccountException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
         return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
     }

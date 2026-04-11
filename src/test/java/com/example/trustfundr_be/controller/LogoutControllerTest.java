@@ -12,7 +12,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import jakarta.servlet.ServletException;
 import jakarta.servlet.http.HttpServletRequest;
- 
+
 @ExtendWith(MockitoExtension.class)
 class LogoutControllerTest {
 
@@ -21,15 +21,16 @@ class LogoutControllerTest {
 
     @Test
     void logout_success() throws ServletException {
+        // Mock http servlet request to complete logout without error
         doNothing().when(httpServletRequest).logout();
 
-        // create controller
+        // Create controller
         LogoutController controller = new LogoutController();
 
-        // create request
+        // Invoke logout
         LogoutController.LogoutResponse res = controller.logout(httpServletRequest);
 
-        // assert response
+        // Assert response
         assertNotNull(res, "Response should not be null");
         assertEquals("Logged out successfully", res.message(), "Message should match success string");
 

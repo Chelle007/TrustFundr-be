@@ -71,7 +71,7 @@ class LoginControllerTest {
         // Mock user account repository to return user account
         when(userAccountRepository.findByUsername(username)).thenReturn(Optional.of(entity));
 
-        // Create response
+        // Mock model mapper to return login response
         LoginController.LoginResponse mapped = new LoginController.LoginResponse();
         mapped.setId(userId);
         mapped.setUsername(username);
@@ -90,7 +90,7 @@ class LoginControllerTest {
         req.setUsername("admin");
         req.setPassword("admin123");
 
-        // Create response
+        // Invoke login
         LoginController.LoginResponse res = controller.login(req, httpServletRequest);
 
         // Assert response
@@ -129,6 +129,8 @@ class LoginControllerTest {
         // Create controller
         LoginController controller = new LoginController(authenticationManager, userAccountRepository, modelMapper,
                 jwtService);
+
+        // Create request
         LoginController.LoginRequest req = new LoginController.LoginRequest();
         req.setUsername("admin");
         req.setPassword("admin123");
@@ -139,7 +141,6 @@ class LoginControllerTest {
 
     @Test
     void login_account_not_found() {
-        
         // Create user details
         String username = "admin";
         UserDetails principal = User.withUsername(username).password("ignored").roles("ADMIN").build();

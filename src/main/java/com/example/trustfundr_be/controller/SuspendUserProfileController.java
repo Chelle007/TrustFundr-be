@@ -1,16 +1,18 @@
 package com.example.trustfundr_be.controller;
 
-import java.util.List;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.data.domain.Sort;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.trustfundr_be.exception.UserProfileException;
+import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -23,7 +25,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/admin/user-profiles")
-public class ViewUserProfileController {
+public class SuspendUserProfileController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
@@ -32,7 +34,7 @@ public class ViewUserProfileController {
 
     @Data
     @NoArgsConstructor
-    public static class UserProfileResponse {
+    public static class SuspendUserProfileResponse {
         private UUID id;
         private String name;
         private String description;
@@ -40,13 +42,20 @@ public class ViewUserProfileController {
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('ADMIN')")
-    @GetMapping
-    @Transactional(readOnly = true)
-    public List<UserProfileResponse> listUserProfiles() {
-        // Load all user profiles sorted by name and map each to response
-        return userProfileRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
-                .map(p -> modelMapper.map(p, UserProfileResponse.class))
-                .toList();
+    @PostMapping("/suspend-user-profile/{id}")
+    @Transactional
+    public SuspendUserProfileResponse suspendUserProfile(@PathVariable UUID id) {
+        // Find existing user profile
+        UserProfile userProfile = userProfileRepository.findById(id)
+                .orElseThrow(() -> new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
+
+        // Suspend user profile (soft delete)
+        userProfile.softDelete();
+
+        // Save user profile
+        UserProfile saved = userProfileRepository.save(userProfile);
+
+        // Map saved user profile to response
+        return modelMapper.map(saved, SuspendUserProfileResponse.class);
     }
 }
-

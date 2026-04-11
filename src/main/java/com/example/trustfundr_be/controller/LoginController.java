@@ -95,7 +95,8 @@ public class LoginController {
 
         // Generate token
         response.setToken(jwtService.generateToken((org.springframework.security.core.userdetails.UserDetails) authentication.getPrincipal()));
-        
+
+        // Return response
         return response;
     }
 }
