@@ -28,8 +28,12 @@ public class AccountUserDetailsService implements UserDetailsService {
             throw new DisabledException(
                     "User account has been deactivated. Please contact an administrator");
         }
+        if (account.getUserProfile() == null || account.getUserProfile().isDeleted()) {
+            throw new DisabledException(
+                    "User profile has been suspended. Please contact an administrator");
+        }
         String role = "USER";
-        if (account.getUserProfile() != null && "Admin".equalsIgnoreCase(account.getUserProfile().getName())) {
+        if ("Admin".equalsIgnoreCase(account.getUserProfile().getName())) {
             role = "ADMIN";
         }
         return User.builder()

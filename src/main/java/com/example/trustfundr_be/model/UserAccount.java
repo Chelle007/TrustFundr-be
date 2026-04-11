@@ -1,5 +1,8 @@
 package com.example.trustfundr_be.model;
 
+import org.hibernate.annotations.NotFound;
+import org.hibernate.annotations.NotFoundAction;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -27,6 +30,7 @@ public class UserAccount extends BaseModel {
 	private String passwordHashString;
 
 	@ManyToOne(fetch = FetchType.LAZY)
+	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "user_profile_id", nullable = false)
 	private UserProfile userProfile;
 

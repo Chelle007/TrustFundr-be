@@ -41,6 +41,11 @@ public class SecurityConfig {
             "/api/auth/logout"
     };
 
+    /** Admin-only APIs (donee / fundraiser / etc. can use other prefixes later). */
+    private static final String[] ADMIN_API_PATHS = {
+            "/api/admin/**"
+    };
+
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http, JwtAuthenticationFilter jwtAuthenticationFilter)
             throws Exception {
@@ -53,6 +58,7 @@ public class SecurityConfig {
                         .requestMatchers(SWAGGER_WHITELIST).permitAll()
                         .requestMatchers(GET_WHITELIST).permitAll()
                         .requestMatchers(POST_WHITELIST).permitAll()
+                        .requestMatchers(ADMIN_API_PATHS).hasRole("ADMIN")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 
