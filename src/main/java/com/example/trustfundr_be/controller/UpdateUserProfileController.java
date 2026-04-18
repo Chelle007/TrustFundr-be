@@ -3,7 +3,6 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserProfileException;
 import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
@@ -62,18 +60,7 @@ public class UpdateUserProfileController {
     @Transactional
     public UpdateUserProfileResponse updateUserProfile(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserProfileRequest request) {
-        // Find user profile
-        UserProfile userProfile = userProfileRepository.findById(id)
-                .orElseThrow(() -> new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
-
-        // Map request to user profile
-        modelMapper.map(request, userProfile);
-
-        // Save updated profile
-        UserProfile saved = userProfileRepository.save(userProfile);
-
-        // Map saved user profile to response
+        UserProfile saved = userProfileRepository.updateUserProfile(id, request);
         return modelMapper.map(saved, UpdateUserProfileResponse.class);
     }
 }
-

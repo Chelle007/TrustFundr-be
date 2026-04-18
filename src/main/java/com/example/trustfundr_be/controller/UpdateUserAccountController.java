@@ -3,9 +3,7 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -13,11 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserAccountRepository;
-import com.example.trustfundr_be.repository.UserProfileRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,8 +32,6 @@ public class UpdateUserAccountController {
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
     private final UserAccountRepository userAccountRepository;
-    private final UserProfileRepository userProfileRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
     @Data
@@ -75,27 +68,10 @@ public class UpdateUserAccountController {
     @Transactional
     public UpdateUserAccountResponse updateUserAccount(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserAccountRequest request) {
-        UserAccount userAccount = userAccountRepository.findById(id)
-                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User account not found"));
+        // Update user account
+        UserAccount saved = userAccountRepository.updateUserAccount(id, request);
 
-        if (request.getUserProfileId() != null) {
-            UserProfile profile = userProfileRepository.findById(request.getUserProfileId())
-                    .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
-            userAccount.setUserProfile(profile);
-        }
-
-        modelMapper.map(request, userAccount);
-
-        // Update password if provided
-        String newPassword = request.getPassword();
-        if (newPassword != null && !newPassword.isBlank()) {
-            userAccount.setPasswordHashString(passwordEncoder.encode(newPassword));
-        }
-
-        // Save user account
-        UserAccount saved = userAccountRepository.save(userAccount);
-
-        // Map saved account to response and set profile fields
+        // Map saved user account to response
         UpdateUserAccountResponse response = modelMapper.map(saved, UpdateUserAccountResponse.class);
         if (saved.getUserProfile() != null) {
             response.setUserProfileId(saved.getUserProfile().getId());
