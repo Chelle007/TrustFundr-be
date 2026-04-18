@@ -8,8 +8,10 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
+import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.example.trustfundr_be.controller.CreateUserAccountController;
 import com.example.trustfundr_be.controller.UpdateUserAccountController;
 import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccount;
@@ -17,6 +19,7 @@ import com.example.trustfundr_be.model.UserProfile;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
+import lombok.RequiredArgsConstructor;
 
 public interface UserAccountRepository extends JpaRepository<UserAccount, UUID>, UserAccountRepositoryCustom {
 
@@ -41,8 +44,11 @@ interface UserAccountRepositoryCustom {
     UserAccount updateUserAccount(UUID id, UpdateUserAccountController.UpdateUserAccountRequest request);
 
     UserAccount suspendUserAccount(UUID id);
+
+    UserAccount createUserAccount(CreateUserAccountController.CreateUserAccountRequest request);
 }
 
+@RequiredArgsConstructor
 class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
 
     @PersistenceContext
@@ -50,11 +56,7 @@ class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
 
     private final PasswordEncoder passwordEncoder;
     private final UserProfileRepository userProfileRepository;
-
-    UserAccountRepositoryImpl(PasswordEncoder passwordEncoder, UserProfileRepository userProfileRepository) {
-        this.passwordEncoder = passwordEncoder;
-        this.userProfileRepository = userProfileRepository;
-    }
+    private final ModelMapper modelMapper;
 
     @Override
     public UserAccount updateUserAccount(UUID id, UpdateUserAccountController.UpdateUserAccountRequest request) {
@@ -62,13 +64,12 @@ class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
         if (userAccount == null) {
             throw new UserAccountException(HttpStatus.NOT_FOUND, "User account not found");
         }
+        modelMapper.map(request, userAccount);
         if (request.getUserProfileId() != null) {
             UserProfile profile = userProfileRepository.findById(request.getUserProfileId())
                     .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
             userAccount.setUserProfile(profile);
         }
-        userAccount.setFullName(request.getFullName());
-        userAccount.setUsername(request.getUsername());
         String password = request.getPassword();
         if (password != null && !password.isBlank()) {
             userAccount.setPasswordHashString(passwordEncoder.encode(password));
@@ -84,6 +85,18 @@ class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
             throw new UserAccountException(HttpStatus.NOT_FOUND, "User account not found");
         }
         userAccount.softDelete();
+        entityManager.flush();
+        return userAccount;
+    }
+
+    @Override
+    public UserAccount createUserAccount(CreateUserAccountController.CreateUserAccountRequest request) {
+        UserProfile userProfile = userProfileRepository.findById(request.getUserProfileId())
+                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
+        UserAccount userAccount = modelMapper.map(request, UserAccount.class);
+        userAccount.setPasswordHashString(passwordEncoder.encode(request.getPassword()));
+        userAccount.setUserProfile(userProfile);
+        entityManager.persist(userAccount);
         entityManager.flush();
         return userAccount;
     }

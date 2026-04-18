@@ -3,20 +3,15 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserAccountRepository;
-import com.example.trustfundr_be.repository.UserProfileRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,8 +32,6 @@ public class CreateUserAccountController {
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
     private final UserAccountRepository userAccountRepository;
-    private final UserProfileRepository userProfileRepository;
-    private final PasswordEncoder passwordEncoder;
     private final ModelMapper modelMapper;
 
     @Data
@@ -76,22 +69,13 @@ public class CreateUserAccountController {
     @PostMapping("/create-user-account")
     @Transactional
     public CreateUserAccountResponse createUserAccount(@Valid @RequestBody CreateUserAccountRequest request) {
-        // Find user profile
-        UserProfile userProfile = userProfileRepository.findById(request.getUserProfileId())
-                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
+        UserAccount saved = userAccountRepository.createUserAccount(request);
 
-        // Map request to user account
-        UserAccount userAccount = modelMapper.map(request, UserAccount.class);
-        userAccount.setPasswordHashString(passwordEncoder.encode(request.getPassword()));
-        userAccount.setUserProfile(userProfile);
-
-        // Save user account
-        UserAccount saved = userAccountRepository.save(userAccount);
-
-        // Map saved account to response and set profile fields
         CreateUserAccountResponse response = modelMapper.map(saved, CreateUserAccountResponse.class);
-        response.setUserProfileId(saved.getUserProfile().getId());
-        response.setUserProfileName(saved.getUserProfile().getName());
+        if (saved.getUserProfile() != null) {
+            response.setUserProfileId(saved.getUserProfile().getId());
+            response.setUserProfileName(saved.getUserProfile().getName());
+        }
         return response;
     }
 }

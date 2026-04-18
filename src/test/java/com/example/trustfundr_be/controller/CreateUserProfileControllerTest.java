@@ -34,16 +34,8 @@ class CreateUserProfileControllerTest {
         saved.setName("Admin");
         saved.setDescription("desc");
 
-        when(userProfileRepository.save(any(UserProfile.class))).thenReturn(saved);
-
-        when(modelMapper.map(any(CreateUserProfileController.CreateUserProfileRequest.class), eq(UserProfile.class)))
-                .thenAnswer(invocation -> {
-                    CreateUserProfileController.CreateUserProfileRequest r = invocation.getArgument(0);
-                    UserProfile up = new UserProfile();
-                    up.setName(r.getName());
-                    up.setDescription(r.getDescription());
-                    return up;
-                });
+        when(userProfileRepository.createUserProfile(any(CreateUserProfileController.CreateUserProfileRequest.class)))
+                .thenReturn(saved);
 
         when(modelMapper.map(any(UserProfile.class), eq(CreateUserProfileController.CreateUserProfileResponse.class)))
                 .thenAnswer(invocation -> {
