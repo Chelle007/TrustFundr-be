@@ -25,7 +25,8 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID>,
     @Query("SELECT DISTINCT a FROM UserAccount a LEFT JOIN FETCH a.userProfile p WHERE "
             + "LOWER(a.username) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(a.fullName) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))) ORDER BY a.username ASC")
+            + "(p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "ORDER BY LOWER(a.fullName) ASC, LOWER(a.username) ASC")
     List<UserAccount> searchByKeyword(@Param("q") String q);
 }
 

@@ -62,26 +62,12 @@ public class UpdateUserProfileController {
     @Transactional
     public UpdateUserProfileResponse updateUserProfile(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserProfileRequest request) {
-        // Validate request body
-        String name = request.getName().trim();
-        if (name.isEmpty()) {
-            throw new UserProfileException(HttpStatus.BAD_REQUEST, "Name cannot be blank");
-        }
-
-        // Find existing user profile
+        // Find user profile
         UserProfile userProfile = userProfileRepository.findById(id)
                 .orElseThrow(() -> new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
 
-        // Ensure unique name (case-insensitive) across profiles
-        userProfileRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
-            if (!existing.getId().equals(userProfile.getId())) {
-                throw new UserProfileException(HttpStatus.CONFLICT, "A user profile with this name already exists");
-            }
-        });
-
-        // Update user profile
-        userProfile.setName(name);
-        userProfile.setDescription(request.getDescription());
+        // Map request to user profile
+        modelMapper.map(request, userProfile);
 
         // Save updated profile
         UserProfile saved = userProfileRepository.save(userProfile);

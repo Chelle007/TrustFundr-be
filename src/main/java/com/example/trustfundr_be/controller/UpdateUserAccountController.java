@@ -75,37 +75,16 @@ public class UpdateUserAccountController {
     @Transactional
     public UpdateUserAccountResponse updateUserAccount(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserAccountRequest request) {
-        // Validate request body
-        String username = request.getUsername().trim();
-        if (username.isEmpty()) {
-            throw new UserAccountException(HttpStatus.BAD_REQUEST, "Username cannot be blank");
-        }
-        String fullName = request.getFullName().trim();
-        if (fullName.isEmpty()) {
-            throw new UserAccountException(HttpStatus.BAD_REQUEST, "Full name cannot be blank");
-        }
-
-        // Find existing user account
         UserAccount userAccount = userAccountRepository.findById(id)
                 .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User account not found"));
 
-        // Ensure username is unique (case-insensitive) across other accounts
-        userAccountRepository.findByUsernameIgnoreCase(username).ifPresent(existing -> {
-            if (!existing.getId().equals(userAccount.getId())) {
-                throw new UserAccountException(HttpStatus.CONFLICT, "An account with this username already exists");
-            }
-        });
-
-        // Update user profile link if requested
         if (request.getUserProfileId() != null) {
             UserProfile profile = userProfileRepository.findById(request.getUserProfileId())
                     .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
             userAccount.setUserProfile(profile);
         }
 
-        // Update account fields
-        userAccount.setFullName(fullName);
-        userAccount.setUsername(username);
+        modelMapper.map(request, userAccount);
 
         // Update password if provided
         String newPassword = request.getPassword();
