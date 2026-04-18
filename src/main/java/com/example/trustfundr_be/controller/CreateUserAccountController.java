@@ -76,29 +76,12 @@ public class CreateUserAccountController {
     @PostMapping("/create-user-account")
     @Transactional
     public CreateUserAccountResponse createUserAccount(@Valid @RequestBody CreateUserAccountRequest request) {
-        // Validate request body
-        String username = request.getUsername().trim();
-        if (username.isEmpty()) {
-            throw new UserAccountException(HttpStatus.BAD_REQUEST, "Username cannot be blank");
-        }
-        String fullName = request.getFullName().trim();
-        if (fullName.isEmpty()) {
-            throw new UserAccountException(HttpStatus.BAD_REQUEST, "Full name cannot be blank");
-        }
-
         // Find user profile
         UserProfile userProfile = userProfileRepository.findById(request.getUserProfileId())
                 .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
 
-        // Ensure username is unique (case-insensitive)
-        if (userAccountRepository.findByUsernameIgnoreCase(username).isPresent()) {
-            throw new UserAccountException(HttpStatus.CONFLICT, "An account with this username already exists");
-        }
-
-        // Create user account
-        UserAccount userAccount = new UserAccount();
-        userAccount.setFullName(fullName);
-        userAccount.setUsername(username);
+        // Map request to user account
+        UserAccount userAccount = modelMapper.map(request, UserAccount.class);
         userAccount.setPasswordHashString(passwordEncoder.encode(request.getPassword()));
         userAccount.setUserProfile(userProfile);
 
