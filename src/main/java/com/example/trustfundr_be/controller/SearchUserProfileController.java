@@ -51,6 +51,7 @@ public class SearchUserProfileController {
         return userProfileRepository
                 .searchByKeyword(q.trim(), Sort.by(Sort.Direction.ASC, "name"))
                 .stream()
+                // Map user profile to response
                 .map(p -> modelMapper.map(p, SearchUserProfileResponse.class))
                 .toList();
     }

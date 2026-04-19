@@ -60,7 +60,10 @@ public class UpdateUserProfileController {
     @Transactional
     public UpdateUserProfileResponse updateUserProfile(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserProfileRequest request) {
+        // Update user profile
         UserProfile saved = userProfileRepository.updateUserProfile(id, request);
+
+        // Map saved user profile to response
         return modelMapper.map(saved, UpdateUserProfileResponse.class);
     }
 }

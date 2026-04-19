@@ -55,6 +55,7 @@ public class SearchUserAccountController {
                 .toList();
     }
 
+    // Map user account to response
     private SearchUserAccountResponse toResponse(UserAccount account) {
         SearchUserAccountResponse response = modelMapper.map(account, SearchUserAccountResponse.class);
         if (account.getUserProfile() != null) {

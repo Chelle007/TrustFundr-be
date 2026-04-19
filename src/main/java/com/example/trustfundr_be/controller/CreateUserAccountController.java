@@ -69,9 +69,12 @@ public class CreateUserAccountController {
     @PostMapping("/create-user-account")
     @Transactional
     public CreateUserAccountResponse createUserAccount(@Valid @RequestBody CreateUserAccountRequest request) {
+        // Create user account
         UserAccount saved = userAccountRepository.createUserAccount(request);
 
+        // Map saved user account to response
         CreateUserAccountResponse response = modelMapper.map(saved, CreateUserAccountResponse.class);
+        // Set user profile id and name on response
         if (saved.getUserProfile() != null) {
             response.setUserProfileId(saved.getUserProfile().getId());
             response.setUserProfileName(saved.getUserProfile().getName());

@@ -54,6 +54,7 @@ public class ViewUserAccountController {
     private UserAccountResponse toResponse(UserAccount account) {
         // Map account fields to response
         UserAccountResponse response = modelMapper.map(account, UserAccountResponse.class);
+        
         // Set user profile id and name on response
         if (account.getUserProfile() != null) {
             response.setUserProfileId(account.getUserProfile().getId());

@@ -43,7 +43,10 @@ public class SuspendUserProfileController {
     @PostMapping("/suspend-user-profile/{id}")
     @Transactional
     public SuspendUserProfileResponse suspendUserProfile(@PathVariable UUID id) {
+        // Suspend user profile
         UserProfile saved = userProfileRepository.suspendUserProfile(id);
+
+        // Map saved user profile to response
         return modelMapper.map(saved, SuspendUserProfileResponse.class);
     }
 }
