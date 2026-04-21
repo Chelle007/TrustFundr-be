@@ -48,7 +48,6 @@ public class ViewMyFundraisingActivitiesController {
     @Transactional(readOnly = true)
     public List<ViewMyFundraisingActivitiesResponse> viewMyFundraisingActivities(
             @AuthenticationPrincipal UserDetails userDetails) {
-        // Load this fundraiser's activities (newest first) and map each to response
         return fundraisingActivityRepository.findByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
                 .stream()
                 // Map fundraising activity to response
