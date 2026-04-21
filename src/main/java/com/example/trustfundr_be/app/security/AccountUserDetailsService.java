@@ -33,8 +33,11 @@ public class AccountUserDetailsService implements UserDetailsService {
                     "User profile has been suspended. Please contact an administrator");
         }
         String role = "USER";
-        if ("Admin".equalsIgnoreCase(account.getUserProfile().getName())) {
+        String profileName = account.getUserProfile().getName();
+        if ("Admin".equalsIgnoreCase(profileName)) {
             role = "ADMIN";
+        } else if ("Fund Raiser".equalsIgnoreCase(profileName)) {
+            role = "FUNDRAISER";
         }
         return User.builder()
                 .username(account.getUsername())
