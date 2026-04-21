@@ -14,7 +14,7 @@ import lombok.Setter;
 @NoArgsConstructor
 public class UserProfile extends BaseModel {
 
-	@Column(nullable = false)
+	@Column(nullable = false, unique = true)
 	private String name;
 
 	@Column(length = 2000)

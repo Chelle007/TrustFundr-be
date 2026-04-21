@@ -3,7 +3,6 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccount;
 import com.example.trustfundr_be.repository.UserAccountRepository;
 
@@ -47,17 +45,10 @@ public class SuspendUserAccountController {
     @PostMapping("/suspend-user-account/{id}")
     @Transactional
     public SuspendUserAccountResponse suspendUserAccount(@PathVariable UUID id) {
-        // Find existing user account
-        UserAccount userAccount = userAccountRepository.findById(id)
-                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User account not found"));
+        // Suspend user account
+        UserAccount saved = userAccountRepository.suspendUserAccount(id);
 
-        // Suspend user account (soft delete)
-        userAccount.softDelete();
-
-        // Save user account
-        UserAccount saved = userAccountRepository.save(userAccount);
-
-        // Map saved account to response and set profile fields
+        // Map saved user account to response
         SuspendUserAccountResponse response = modelMapper.map(saved, SuspendUserAccountResponse.class);
         if (saved.getUserProfile() != null) {
             response.setUserProfileId(saved.getUserProfile().getId());

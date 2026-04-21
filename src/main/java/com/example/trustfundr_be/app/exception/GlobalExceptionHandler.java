@@ -1,13 +1,17 @@
 package com.example.trustfundr_be.app.exception;
 
 import java.util.Map;
+import java.util.Objects;
 import java.util.stream.Collectors;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.HandlerMethodValidationException;
 
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
@@ -46,6 +50,28 @@ public class GlobalExceptionHandler {
         String message = ex.getBindingResult().getFieldErrors().stream()
                 .map(error -> error.getField() + ": " + error.getDefaultMessage())
                 .collect(Collectors.joining("; "));
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(HandlerMethodValidationException.class)
+    public ResponseEntity<Map<String, String>> handleHandlerMethodValidation(HandlerMethodValidationException ex) {
+        String message = ex.getParameterValidationResults().stream()
+                .flatMap(p -> p.getResolvableErrors().stream())
+                .map(err -> {
+                    if (err instanceof FieldError fe) {
+                        return fe.getDefaultMessage();
+                    }
+                    if (err instanceof ObjectError oe) {
+                        return oe.getDefaultMessage();
+                    }
+                    return err.toString();
+                })
+                .filter(Objects::nonNull)
+                .filter(s -> !s.isBlank())
+                .collect(Collectors.joining("; "));
+        if (message.isBlank()) {
+            message = ex.getReason() != null ? ex.getReason() : "Validation failed";
+        }
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(Map.of("message", message));
     }
 }

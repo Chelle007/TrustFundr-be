@@ -3,7 +3,6 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,7 +10,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserProfileException;
 import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
@@ -45,15 +43,8 @@ public class SuspendUserProfileController {
     @PostMapping("/suspend-user-profile/{id}")
     @Transactional
     public SuspendUserProfileResponse suspendUserProfile(@PathVariable UUID id) {
-        // Find existing user profile
-        UserProfile userProfile = userProfileRepository.findById(id)
-                .orElseThrow(() -> new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
-
-        // Suspend user profile (soft delete)
-        userProfile.softDelete();
-
-        // Save user profile
-        UserProfile saved = userProfileRepository.save(userProfile);
+        // Suspend user profile
+        UserProfile saved = userProfileRepository.suspendUserProfile(id);
 
         // Map saved user profile to response
         return modelMapper.map(saved, SuspendUserProfileResponse.class);

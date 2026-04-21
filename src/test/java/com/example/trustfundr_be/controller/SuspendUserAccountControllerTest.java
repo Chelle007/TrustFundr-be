@@ -3,13 +3,10 @@ package com.example.trustfundr_be.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -25,7 +22,7 @@ import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserAccountRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class SuspendUserAccountControllerTest {
+class SuspendUserAccountControllerTest {
 
     @Mock
     private UserAccountRepository userAccountRepository;
@@ -40,21 +37,18 @@ public class SuspendUserAccountControllerTest {
     private UserProfile userProfile;
 
     @Test
-    void SuspendUserAccount_success() {
+    void suspendUserAccount_success() {
         // Setup data
-        UUID account_id = UUID.randomUUID();
-        UUID profile_id = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
+        UUID profileId = UUID.randomUUID();
         String profileName = "Admin Profile";
 
-        // Mock repository behaviour for finding the account
-        when(userAccountRepository.findById(account_id)).thenReturn(Optional.of(userAccount));
-
-        // Mock repository behaviour for saving the account (returns the same mocked account)
-        when(userAccountRepository.save(userAccount)).thenReturn(userAccount);
+        // Mock repository behaviour (controller delegates suspend to repository)
+        when(userAccountRepository.suspendUserAccount(accountId)).thenReturn(userAccount);
 
         // Mock profile data for the mapping logic
         when(userAccount.getUserProfile()).thenReturn(userProfile);
-        when(userProfile.getId()).thenReturn(profile_id);
+        when(userProfile.getId()).thenReturn(profileId);
         when(userProfile.getName()).thenReturn(profileName);
 
         // Mock model mapper behavior
@@ -67,34 +61,33 @@ public class SuspendUserAccountControllerTest {
         SuspendUserAccountController controller = new SuspendUserAccountController(userAccountRepository, modelMapper);
 
         // Invoke suspend method
-        SuspendUserAccountController.SuspendUserAccountResponse result = controller.suspendUserAccount(account_id);
+        SuspendUserAccountController.SuspendUserAccountResponse result = controller.suspendUserAccount(accountId);
 
         // Assert response
         assertNotNull(result, "Response should not be null");
-        assertEquals(profile_id, result.getUserProfileId(), "User profile ID should be mapped corrrectly");
+        assertEquals(profileId, result.getUserProfileId(), "User profile ID should be mapped correctly");
         assertEquals(profileName, result.getUserProfileName(), "User profile name should be mapped correctly");
 
-        // Verify interactions(Ensure find, softDelete, and save were ALL called)
-        verify(userAccountRepository).findById(account_id);
-        verify(userAccount).softDelete();
-        verify(userAccountRepository).save(userAccount);
+        // Verify interactions
+        verify(userAccountRepository).suspendUserAccount(accountId);
         verify(modelMapper).map(eq(userAccount), eq(SuspendUserAccountController.SuspendUserAccountResponse.class));
     }
 
     @Test
-    void SuspendUserAccount_failure() throws UserAccountException {
+    void suspendUserAccount_notFound() {
         // Setup data with an ID that does not exist
-        UUID account_id = UUID.randomUUID();
+        UUID accountId = UUID.randomUUID();
 
-        // Mock repository to return empty Optional (Simulating use not found)
-        when(userAccountRepository.findById(account_id)).thenReturn(Optional.empty());
+        // Repository layer throws exception when ID not found
+        when(userAccountRepository.suspendUserAccount(accountId))
+                .thenThrow(new UserAccountException(HttpStatus.NOT_FOUND, "User account not found"));
 
         // Create controller
         SuspendUserAccountController controller = new SuspendUserAccountController(userAccountRepository, modelMapper);
 
         // Invoke and Assert exception
         UserAccountException exception = assertThrows(UserAccountException.class, () -> {
-            controller.suspendUserAccount(account_id);
+            controller.suspendUserAccount(accountId);
         });
 
         // Assert exception status and meesage
@@ -102,8 +95,6 @@ public class SuspendUserAccountControllerTest {
         assertEquals("User account not found", exception.getMessage(), "Error message should match controller definition");
 
         // Verify repository interactions
-        verify(userAccountRepository).findById(account_id);
-        verify(userAccountRepository, never()).save(any());
-        verify(userAccount, never()).softDelete();
+        verify(userAccountRepository).suspendUserAccount(accountId);
     }
 }

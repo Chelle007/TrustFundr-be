@@ -2,31 +2,25 @@ package com.example.trustfundr_be.controller;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
 import java.util.List;
 import java.util.UUID;
 
-import com.example.trustfundr_be.repository.UserAccountRepository;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 
-import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccount;
 import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.repository.UserAccountRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class SearchUserAccountControllerTest {
+class SearchUserAccountControllerTest {
 
     @Mock
     private UserAccountRepository userAccountRepository;
@@ -43,8 +37,9 @@ public class SearchUserAccountControllerTest {
     @Test
     void searchUserAccounts_success() {
         // Mock repository to return list containing user account
-        String q = "test";
-        when(userAccountRepository.searchByKeyword(q)).thenReturn(List.of(userAccount));
+        String q = " test ";
+        String term = "test";
+        when(userAccountRepository.searchByKeyword(term)).thenReturn(List.of(userAccount));
 
         // Mock account and profile for mapping verification
         UUID profileId = UUID.randomUUID();
@@ -70,26 +65,6 @@ public class SearchUserAccountControllerTest {
         assertEquals(profileId, res.get(0).getUserProfileId(), "Profile ID should be mapped correctly");
         assertEquals(profileName, res.get(0).getUserProfileName(), "Profile Name should be mapped correctly");
 
-        verify(userAccountRepository).searchByKeyword(q);
-    }
-
-    @Test
-    void searchUserAccounts_empty() throws Exception {
-        // Set up data with a blank query string
-        String q = " ";
-
-        // Create controller
-        SearchUserAccountController controller = new SearchUserAccountController(userAccountRepository, modelMapper);
-
-        // Invoke search and Assert exception
-        UserAccountException exception = assertThrows(UserAccountException.class, () -> {
-            controller.searchUserAccounts(q);
-        });
-
-        //Assert response status and message
-        assertEquals(HttpStatus.BAD_REQUEST, exception.getStatus(), "Status should match 400 BAD_REQUEST");
-        assertEquals("Search query is required", exception.getMessage(), "Error message should match controller definition");
-
-        verify(userAccountRepository, never()).searchByKeyword(any());
+        verify(userAccountRepository).searchByKeyword(term);
     }
 }

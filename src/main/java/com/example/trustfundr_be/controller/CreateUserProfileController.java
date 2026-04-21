@@ -3,7 +3,6 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -11,17 +10,13 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.trustfundr_be.repository.UserProfileRepository;
+
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
-
-import com.example.trustfundr_be.exception.UserProfileException;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
-
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -62,25 +57,7 @@ public class CreateUserProfileController {
     @PostMapping("/create-user-profile")
     @Transactional
     public CreateUserProfileResponse createUserProfile(@Valid @RequestBody CreateUserProfileRequest request) {
-        // Validate request body
-        String name = request.getName().trim();
-        if (name.isEmpty()) {
-            throw new UserProfileException(HttpStatus.BAD_REQUEST, "Name cannot be blank");
-        }
-        if (userProfileRepository.findByNameIgnoreCase(name).isPresent()) {
-            throw new UserProfileException(HttpStatus.CONFLICT, "A user profile with this name already exists");
-        }
-
-        // Create user profile
-        UserProfile userProfile = new UserProfile();
-        userProfile.setName(name);
-        userProfile.setDescription(request.getDescription());
-
-        // Save user profile
-        UserProfile saved = userProfileRepository.save(userProfile);
-
-        // Map saved user profile to response
-        return modelMapper.map(saved, CreateUserProfileResponse.class);
+        // Create user profile & map to response
+        return modelMapper.map(userProfileRepository.createUserProfile(request), CreateUserProfileResponse.class);
     }
 }
-

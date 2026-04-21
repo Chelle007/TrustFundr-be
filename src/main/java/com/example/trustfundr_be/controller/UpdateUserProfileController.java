@@ -3,7 +3,6 @@ package com.example.trustfundr_be.controller;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
-import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -12,7 +11,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.exception.UserProfileException;
 import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
@@ -62,32 +60,10 @@ public class UpdateUserProfileController {
     @Transactional
     public UpdateUserProfileResponse updateUserProfile(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserProfileRequest request) {
-        // Validate request body
-        String name = request.getName().trim();
-        if (name.isEmpty()) {
-            throw new UserProfileException(HttpStatus.BAD_REQUEST, "Name cannot be blank");
-        }
-
-        // Find existing user profile
-        UserProfile userProfile = userProfileRepository.findById(id)
-                .orElseThrow(() -> new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
-
-        // Ensure unique name (case-insensitive) across profiles
-        userProfileRepository.findByNameIgnoreCase(name).ifPresent(existing -> {
-            if (!existing.getId().equals(userProfile.getId())) {
-                throw new UserProfileException(HttpStatus.CONFLICT, "A user profile with this name already exists");
-            }
-        });
-
         // Update user profile
-        userProfile.setName(name);
-        userProfile.setDescription(request.getDescription());
-
-        // Save updated profile
-        UserProfile saved = userProfileRepository.save(userProfile);
+        UserProfile saved = userProfileRepository.updateUserProfile(id, request);
 
         // Map saved user profile to response
         return modelMapper.map(saved, UpdateUserProfileResponse.class);
     }
 }
-
