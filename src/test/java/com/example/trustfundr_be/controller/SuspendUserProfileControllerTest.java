@@ -3,13 +3,10 @@ package com.example.trustfundr_be.controller;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.never;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 
-import java.util.Optional;
 import java.util.UUID;
 
 import org.junit.jupiter.api.Test;
@@ -24,7 +21,7 @@ import com.example.trustfundr_be.model.UserProfile;
 import com.example.trustfundr_be.repository.UserProfileRepository;
 
 @ExtendWith(MockitoExtension.class)
-public class SuspendUserProfileControllerTest {
+class SuspendUserProfileControllerTest {
 
     @Mock
     private UserProfileRepository userProfileRepository;
@@ -36,15 +33,12 @@ public class SuspendUserProfileControllerTest {
     private UserProfile userProfile;
 
     @Test
-    void SuspendUserProfile_success() {
+    void suspendUserProfile_success() {
         // Setup data
-        UUID profile_id = UUID.randomUUID();
+        UUID profileId = UUID.randomUUID();
 
-        // Mock repository behaviour for finding the profile
-        when(userProfileRepository.findById(profile_id)).thenReturn(Optional.of(userProfile));
-
-        // Mock repository behaviour for saving the Profile (returns the same mocked Profile)
-        when(userProfileRepository.save(userProfile)).thenReturn(userProfile);
+        // Mock repository behaviour (controller delegates suspend to repository)
+        when(userProfileRepository.suspendUserProfile(profileId)).thenReturn(userProfile);
 
         // Mock model mapper behavior
         SuspendUserProfileController.SuspendUserProfileResponse mockedResponse =
@@ -56,41 +50,38 @@ public class SuspendUserProfileControllerTest {
         SuspendUserProfileController controller = new SuspendUserProfileController(userProfileRepository, modelMapper);
 
         // Invoke suspend method
-        SuspendUserProfileController.SuspendUserProfileResponse result = controller.suspendUserProfile(profile_id);
+        SuspendUserProfileController.SuspendUserProfileResponse result = controller.suspendUserProfile(profileId);
 
         // Assert response
         assertNotNull(result, "Response should not be null");
 
-        // Verify interactions(Ensure find, softDelete, and save were ALL called)
-        verify(userProfileRepository).findById(profile_id);
-        verify(userProfile).softDelete();
-        verify(userProfileRepository).save(userProfile);
+        // Verify interactions
+        verify(userProfileRepository).suspendUserProfile(profileId);
         verify(modelMapper).map(eq(userProfile), eq(SuspendUserProfileController.SuspendUserProfileResponse.class));
     }
 
     @Test
-    void SuspendUserProfile_failure() throws UserProfileException {
+    void suspendUserProfile_notFound() {
         // Setup data with an ID that does not exist
-        UUID Profile_id = UUID.randomUUID();
+        UUID profileId = UUID.randomUUID();
 
-        // Mock repository to return empty Optional (Simulating use not found)
-        when(userProfileRepository.findById(Profile_id)).thenReturn(Optional.empty());
+        // Repository layer throws exception when ID not found
+        when(userProfileRepository.suspendUserProfile(profileId))
+                .thenThrow(new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found"));
 
         // Create controller
         SuspendUserProfileController controller = new SuspendUserProfileController(userProfileRepository, modelMapper);
 
         // Invoke and Assert exception
         UserProfileException exception = assertThrows(UserProfileException.class, () -> {
-            controller.suspendUserProfile(Profile_id);
+            controller.suspendUserProfile(profileId);
         });
 
-        // Assert exception status and meesage
+        // Assert exception status and message
         assertEquals(HttpStatus.NOT_FOUND, exception.getStatus(), "Status should be 404 NOT_FOUND");
         assertEquals("User profile not found", exception.getMessage(), "Error message should match controller definition");
 
         // Verify repository interactions
-        verify(userProfileRepository).findById(Profile_id);
-        verify(userProfileRepository, never()).save(any());
-        verify(userProfile, never()).softDelete();
+        verify(userProfileRepository).suspendUserProfile(profileId);
     }
 }
