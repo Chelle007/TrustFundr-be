@@ -38,6 +38,8 @@ public class AccountUserDetailsService implements UserDetailsService {
             role = "ADMIN";
         } else if ("Fund Raiser".equalsIgnoreCase(profileName)) {
             role = "FUNDRAISER";
+        } else if ("Donee".equalsIgnoreCase(profileName)) {
+            role = "DONEE";
         }
         return User.builder()
                 .username(account.getUsername())

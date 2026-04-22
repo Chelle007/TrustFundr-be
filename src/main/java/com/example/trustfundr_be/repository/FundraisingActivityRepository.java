@@ -33,6 +33,18 @@ public interface FundraisingActivityRepository
             + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))))")
     List<FundraisingActivity> searchForOwner(@Param("ownerUsername") String ownerUsername, @Param("q") String q,
             Sort sort);
+
+    @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner ORDER BY f.createdAt DESC")
+    List<FundraisingActivity> findAllPublicOrderByCreatedAtDesc();
+
+    @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE "
+            + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "ORDER BY f.createdAt DESC")
+    List<FundraisingActivity> searchAllPublic(@Param("q") String q);
+
+    @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE f.id = :id")
+    Optional<FundraisingActivity> findByIdWithOwner(@Param("id") UUID id);
 }
 
 interface FundraisingActivityRepositoryCustom {
