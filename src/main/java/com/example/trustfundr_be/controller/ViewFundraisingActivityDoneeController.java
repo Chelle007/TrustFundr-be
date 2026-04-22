@@ -47,12 +47,15 @@ public class ViewFundraisingActivityDoneeController {
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('DONEE')")
     @GetMapping("/view-fundraising-activity/{id}")
-    @Transactional(readOnly = true)
+    @Transactional
     public ViewFundraisingActivityDoneeResponse viewFundraisingActivity(@PathVariable UUID id) {
         // Load activity with fundraiser (owner) for detail view
         FundraisingActivity activity = fundraisingActivityRepository.findByIdWithOwner(id)
                 .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND,
                         "Fundraising activity not found"));
+
+        // Count a view when a donee opens the activity detail (denormalized counter on the activity)
+        fundraisingActivityRepository.incrementViewCountById(id);
 
         // Map fundraising activity to response
         ViewFundraisingActivityDoneeResponse response = modelMapper.map(activity, ViewFundraisingActivityDoneeResponse.class);

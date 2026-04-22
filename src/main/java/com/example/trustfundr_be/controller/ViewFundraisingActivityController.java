@@ -41,6 +41,9 @@ public class ViewFundraisingActivityController {
         private UUID id;
         private String title;
         private String description;
+        private long viewCount;
+        private long favouriteCount;
+        private Instant completedAt;
         private Instant createdAt;
         private Instant updatedAt;
     }

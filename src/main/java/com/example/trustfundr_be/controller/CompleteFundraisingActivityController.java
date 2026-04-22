@@ -8,8 +8,8 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -18,9 +18,6 @@ import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
@@ -29,7 +26,7 @@ import lombok.RequiredArgsConstructor;
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/fundraiser/fundraising-activities")
-public class CreateFundraisingActivityController {
+public class CompleteFundraisingActivityController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
@@ -38,19 +35,7 @@ public class CreateFundraisingActivityController {
 
     @Data
     @NoArgsConstructor
-    public static class CreateFundraisingActivityRequest {
-
-        @NotBlank(message = "Title is required")
-        @Size(max = 255)
-        private String title;
-
-        @Size(max = 5000)
-        private String description;
-    }
-
-    @Data
-    @NoArgsConstructor
-    public static class CreateFundraisingActivityResponse {
+    public static class CompleteFundraisingActivityResponse {
         private UUID id;
         private String title;
         private String description;
@@ -63,16 +48,15 @@ public class CreateFundraisingActivityController {
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('FUNDRAISER')")
-    @PostMapping("/create-fundraising-activity")
+    @PostMapping("/complete-fundraising-activity/{id}")
     @Transactional
-    public CreateFundraisingActivityResponse createFundraisingActivity(
-            @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody CreateFundraisingActivityRequest request) {
-        // Create fundraising activity
-        FundraisingActivity saved = fundraisingActivityRepository.createFundraisingActivity(userDetails.getUsername(),
-                request);
+    public CompleteFundraisingActivityResponse completeFundraisingActivity(
+            @AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID id) {
+        // Mark activity as completed (idempotent if already completed)
+        FundraisingActivity saved = fundraisingActivityRepository.completeFundraisingActivity(userDetails.getUsername(),
+                id);
 
         // Map saved fundraising activity to response
-        return modelMapper.map(saved, CreateFundraisingActivityResponse.class);
+        return modelMapper.map(saved, CompleteFundraisingActivityResponse.class);
     }
 }

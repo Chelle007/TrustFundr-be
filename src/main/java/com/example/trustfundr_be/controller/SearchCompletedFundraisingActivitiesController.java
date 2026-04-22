@@ -1,6 +1,7 @@
 package com.example.trustfundr_be.controller;
 
 import java.time.Instant;
+import java.util.List;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
@@ -8,28 +9,27 @@ import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.RequiredArgsConstructor;
 
 @Tag(name = "Fundraising activities")
+@Validated
 @RequiredArgsConstructor
 @RestController
 @RequestMapping("/api/fundraiser/fundraising-activities")
-public class CreateFundraisingActivityController {
+public class SearchCompletedFundraisingActivitiesController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
@@ -38,19 +38,7 @@ public class CreateFundraisingActivityController {
 
     @Data
     @NoArgsConstructor
-    public static class CreateFundraisingActivityRequest {
-
-        @NotBlank(message = "Title is required")
-        @Size(max = 255)
-        private String title;
-
-        @Size(max = 5000)
-        private String description;
-    }
-
-    @Data
-    @NoArgsConstructor
-    public static class CreateFundraisingActivityResponse {
+    public static class SearchCompletedFundraisingActivitiesResponse {
         private UUID id;
         private String title;
         private String description;
@@ -63,16 +51,16 @@ public class CreateFundraisingActivityController {
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('FUNDRAISER')")
-    @PostMapping("/create-fundraising-activity")
-    @Transactional
-    public CreateFundraisingActivityResponse createFundraisingActivity(
+    @GetMapping("/search-completed-fundraising-activities")
+    @Transactional(readOnly = true)
+    public List<SearchCompletedFundraisingActivitiesResponse> searchCompletedFundraisingActivities(
             @AuthenticationPrincipal UserDetails userDetails,
-            @Valid @RequestBody CreateFundraisingActivityRequest request) {
-        // Create fundraising activity
-        FundraisingActivity saved = fundraisingActivityRepository.createFundraisingActivity(userDetails.getUsername(),
-                request);
-
-        // Map saved fundraising activity to response
-        return modelMapper.map(saved, CreateFundraisingActivityResponse.class);
+            @RequestParam("q") @NotBlank(message = "Search query is required") String q) {
+        return fundraisingActivityRepository
+                .searchCompletedForOwner(userDetails.getUsername(), q.trim())
+                .stream()
+                // Map fundraising activity to response
+                .map(a -> modelMapper.map(a, SearchCompletedFundraisingActivitiesResponse.class))
+                .toList();
     }
 }

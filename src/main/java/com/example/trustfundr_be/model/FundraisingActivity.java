@@ -1,5 +1,7 @@
 package com.example.trustfundr_be.model;
 
+import java.time.Instant;
+
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -22,6 +24,15 @@ public class FundraisingActivity extends BaseModel {
 
     @Column(length = 5000)
     private String description;
+
+    @Column(name = "view_count", nullable = false)
+    private long viewCount;
+
+    @Column(name = "favourite_count", nullable = false)
+    private long favouriteCount;
+
+    @Column(name = "completed_at")
+    private Instant completedAt;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_account_id", nullable = false)

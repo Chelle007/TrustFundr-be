@@ -38,6 +38,9 @@ public class ViewMyFundraisingActivitiesController {
         private UUID id;
         private String title;
         private String description;
+        private long viewCount;
+        private long favouriteCount;
+        private Instant completedAt;
         private Instant createdAt;
         private Instant updatedAt;
     }
@@ -48,7 +51,7 @@ public class ViewMyFundraisingActivitiesController {
     @Transactional(readOnly = true)
     public List<ViewMyFundraisingActivitiesResponse> viewMyFundraisingActivities(
             @AuthenticationPrincipal UserDetails userDetails) {
-        return fundraisingActivityRepository.findByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
+        return fundraisingActivityRepository.findActiveByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
                 .stream()
                 // Map fundraising activity to response
                 .map(a -> modelMapper.map(a, ViewMyFundraisingActivitiesResponse.class))

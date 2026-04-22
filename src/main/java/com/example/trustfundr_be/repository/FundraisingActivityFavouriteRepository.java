@@ -71,6 +71,7 @@ class FundraisingActivityFavouriteRepositoryImpl implements FundraisingActivityF
         row.setFundraisingActivity(activity);
         entityManager.persist(row);
         entityManager.flush();
+        fundraisingActivityRepository.incrementFavouriteCountById(activityId);
         return row;
     }
 }
