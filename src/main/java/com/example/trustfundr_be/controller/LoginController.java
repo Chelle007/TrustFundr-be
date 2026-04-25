@@ -53,6 +53,7 @@ public class LoginController {
         private UUID id;
         private String fullName;
         private String username;
+        private String role;
         private String token;
     }
 
@@ -66,6 +67,7 @@ public class LoginController {
 
         // Map user account to response
         LoginResponse response = modelMapper.map(userAccount, LoginResponse.class);
+        response.setRole(userAccount.getUserProfile().getName());
         response.setToken(jwtService.generateToken(toUserDetails(userAccount)));
         return response;
     }
