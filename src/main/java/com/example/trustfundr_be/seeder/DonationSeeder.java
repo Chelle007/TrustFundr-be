@@ -31,7 +31,7 @@ public class DonationSeeder {
 
     public void seedDonations() {
         long current = donationRepository.count();
-        if (current >= TARGET_COUNT) {
+        if (current >= 10) {
             return;
         }
 

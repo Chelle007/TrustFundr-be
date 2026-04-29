@@ -21,7 +21,7 @@ public class FundraisingCategorySeeder {
 
     public void seedFundraisingCategories() {
         long current = fundraisingCategoryRepository.count();
-        if (current >= TARGET_COUNT) {
+        if (current >= 10) {
             return;
         }
 

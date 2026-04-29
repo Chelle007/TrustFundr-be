@@ -28,7 +28,7 @@ public class FundraisingActivitySeeder {
 
     public void seedFundraisingActivities() {
         long current = fundraisingActivityRepository.count();
-        if (current >= TARGET_COUNT) {
+        if (current >= 10) {
             return;
         }
 

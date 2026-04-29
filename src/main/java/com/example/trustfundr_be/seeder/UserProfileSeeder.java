@@ -24,6 +24,9 @@ public class UserProfileSeeder {
             new ProfileSeed("Platform Management", "Platform administration and oversight"));
 
     public void seedUserProfiles() {
+        if (userProfileRepository.count() >= 10) {
+            return;
+        }
         for (ProfileSeed seed : DEFAULT_PROFILES) {
             userProfileRepository.findByName(seed.name()).orElseGet(() -> {
 

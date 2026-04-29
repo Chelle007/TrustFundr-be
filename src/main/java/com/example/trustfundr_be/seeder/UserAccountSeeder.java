@@ -46,6 +46,9 @@ public class UserAccountSeeder {
             new ProfileSeed("Platform Management", "Platform administration and oversight"));
 
     public void seedUserAccounts() {
+        if (userAccountRepository.count() >= 10) {
+            return;
+        }
         ensureRequiredProfilesExist();
         seedDefaultAccounts();
         seedFakerAccountsUpToTarget();
