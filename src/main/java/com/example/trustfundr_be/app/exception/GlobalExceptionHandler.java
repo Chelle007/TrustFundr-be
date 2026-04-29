@@ -16,6 +16,7 @@ import org.springframework.web.method.annotation.HandlerMethodValidationExceptio
 import com.example.trustfundr_be.exception.AccountDisabledException;
 import com.example.trustfundr_be.exception.AuthException;
 import com.example.trustfundr_be.exception.FundraisingActivityException;
+import com.example.trustfundr_be.exception.FundraisingCategoryException;
 import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.exception.UserProfileException;
 
@@ -48,6 +49,12 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(FundraisingActivityException.class)
     public ResponseEntity<Map<String, String>> handleFundraisingActivityException(FundraisingActivityException ex) {
+        String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
+        return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(FundraisingCategoryException.class)
+    public ResponseEntity<Map<String, String>> handleFundraisingCategoryException(FundraisingCategoryException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
         return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
     }

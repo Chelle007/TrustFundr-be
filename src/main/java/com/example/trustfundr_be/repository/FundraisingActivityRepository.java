@@ -69,6 +69,21 @@ public interface FundraisingActivityRepository
 
     @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE f.id = :id")
     Optional<FundraisingActivity> findByIdWithOwner(@Param("id") UUID id);
+
+    @Query("SELECT COUNT(f) FROM FundraisingActivity f WHERE f.createdAt >= :start AND f.createdAt < :end")
+    long countCreatedBetween(@Param("start") Instant start, @Param("end") Instant end);
+
+    @Query(
+            "SELECT COUNT(f) FROM FundraisingActivity f WHERE f.completedAt IS NOT NULL AND f.completedAt >= :start AND f.completedAt < :end")
+    long countCompletedBetween(@Param("start") Instant start, @Param("end") Instant end);
+
+    @Query(
+            "SELECT COALESCE(SUM(f.viewCount), 0) FROM FundraisingActivity f WHERE f.createdAt >= :start AND f.createdAt < :end")
+    long sumViewCountCreatedBetween(@Param("start") Instant start, @Param("end") Instant end);
+
+    @Query(
+            "SELECT COALESCE(SUM(f.favouriteCount), 0) FROM FundraisingActivity f WHERE f.createdAt >= :start AND f.createdAt < :end")
+    long sumFavouriteCountCreatedBetween(@Param("start") Instant start, @Param("end") Instant end);
 }
 
 interface FundraisingActivityRepositoryCustom {
@@ -80,8 +95,6 @@ interface FundraisingActivityRepositoryCustom {
             UpdateFundraisingActivityController.UpdateFundraisingActivityRequest request);
 
     FundraisingActivity suspendFundraisingActivity(String ownerUsername, UUID id);
-
-    FundraisingActivity completeFundraisingActivity(String ownerUsername, UUID id);
 }
 
 @RequiredArgsConstructor
@@ -145,26 +158,6 @@ class FundraisingActivityRepositoryImpl implements FundraisingActivityRepository
         }
         // Suspend via soft delete (same pattern as user profile / user account)
         entity.softDelete();
-        entityManager.flush();
-        return entity;
-    }
-
-    @Override
-    public FundraisingActivity completeFundraisingActivity(String ownerUsername, UUID id) {
-        FundraisingActivity entity = entityManager.find(FundraisingActivity.class, id);
-        if (entity == null) {
-            throw new FundraisingActivityException(HttpStatus.NOT_FOUND, "Fundraising activity not found");
-        }
-        if (entity.getOwner() == null || !ownerUsername.equals(entity.getOwner().getUsername())) {
-            throw new FundraisingActivityException(HttpStatus.NOT_FOUND, "Fundraising activity not found");
-        }
-        if (entity.isDeleted()) {
-            throw new FundraisingActivityException(HttpStatus.NOT_FOUND, "Fundraising activity not found");
-        }
-        if (entity.getCompletedAt() != null) {
-            return entity;
-        }
-        entity.setCompletedAt(Instant.now());
         entityManager.flush();
         return entity;
     }

@@ -1,5 +1,7 @@
 package com.example.trustfundr_be.repository;
 
+import java.math.BigDecimal;
+import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
 
@@ -21,4 +23,11 @@ public interface DonationRepository extends JpaRepository<Donation, UUID> {
             + "(d.memo IS NOT NULL AND LOWER(d.memo) LIKE LOWER(CONCAT('%', :q, '%')))) "
             + "ORDER BY d.createdAt DESC")
     List<Donation> searchDonationHistoryForDonee(@Param("username") String username, @Param("q") String q);
+
+    @Query("SELECT COUNT(d) FROM Donation d WHERE d.createdAt >= :start AND d.createdAt < :end")
+    long countDonationsBetween(@Param("start") Instant start, @Param("end") Instant end);
+
+    @Query(
+            "SELECT COALESCE(SUM(d.amount), 0) FROM Donation d WHERE d.createdAt >= :start AND d.createdAt < :end")
+    BigDecimal sumDonationAmountBetween(@Param("start") Instant start, @Param("end") Instant end);
 }
