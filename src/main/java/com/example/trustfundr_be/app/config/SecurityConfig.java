@@ -41,9 +41,18 @@ public class SecurityConfig {
             "/api/auth/logout"
     };
 
-    /** Admin-only APIs (donee / fundraiser / etc. can use other prefixes later). */
+    /** Role-based API prefixes. */
     private static final String[] ADMIN_API_PATHS = {
             "/api/admin/**"
+    };
+    private static final String[] DONEE_API_PATHS = {
+            "/api/donee/**"
+    };
+    private static final String[] FUNDRAISER_API_PATHS = {
+            "/api/fundraiser/**"
+    };
+    private static final String[] PLATFORM_MANAGEMENT_API_PATHS = {
+            "/api/platform-management/**"
     };
 
     @Bean
@@ -59,6 +68,9 @@ public class SecurityConfig {
                         .requestMatchers(GET_WHITELIST).permitAll()
                         .requestMatchers(POST_WHITELIST).permitAll()
                         .requestMatchers(ADMIN_API_PATHS).hasRole("ADMIN")
+                        .requestMatchers(DONEE_API_PATHS).hasRole("DONEE")
+                        .requestMatchers(FUNDRAISER_API_PATHS).hasRole("FUNDRAISER")
+                        .requestMatchers(PLATFORM_MANAGEMENT_API_PATHS).hasRole("PLATFORM_MANAGEMENT")
                         .anyRequest().authenticated())
                 .addFilterBefore(jwtAuthenticationFilter, UsernamePasswordAuthenticationFilter.class);
 

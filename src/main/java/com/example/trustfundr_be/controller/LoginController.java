@@ -73,9 +73,17 @@ public class LoginController {
     // Map to UserDetails (UserAccount's username and password + UserProfile's role)
     private static UserDetails toUserDetails(UserAccount account) {
         String role = "USER";
-        if (account.getUserProfile() != null
-                && "Admin".equalsIgnoreCase(account.getUserProfile().getName())) {
-            role = "ADMIN";
+        if (account.getUserProfile() != null) {
+            String profileName = account.getUserProfile().getName();
+            if ("Admin".equalsIgnoreCase(profileName)) {
+                role = "ADMIN";
+            } else if ("Fund Raiser".equalsIgnoreCase(profileName)) {
+                role = "FUNDRAISER";
+            } else if ("Donee".equalsIgnoreCase(profileName)) {
+                role = "DONEE";
+            } else if ("Platform Management".equalsIgnoreCase(profileName)) {
+                role = "PLATFORM_MANAGEMENT";
+            }
         }
         return User.builder()
                 .username(account.getUsername())
