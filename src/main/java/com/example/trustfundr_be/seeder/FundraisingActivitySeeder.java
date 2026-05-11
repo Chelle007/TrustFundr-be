@@ -1,5 +1,7 @@
 package com.example.trustfundr_be.seeder;
 
+import java.math.BigDecimal;
+import java.math.RoundingMode;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
@@ -42,6 +44,13 @@ public class FundraisingActivitySeeder {
             FundraisingActivity act = new FundraisingActivity();
             act.setTitle(faker.book().title());
             act.setDescription(faker.lorem().paragraph(4));
+            act.setCategory(faker.options().option("Medical", "Education", "Community", "Environment"));
+            act.setLocation(faker.address().city());
+            BigDecimal goal = BigDecimal.valueOf(ThreadLocalRandom.current().nextInt(5_000, 100_000));
+            act.setGoalAmount(goal);
+            act.setCurrentAmount(
+                    goal.multiply(BigDecimal.valueOf(ThreadLocalRandom.current().nextDouble(0, 0.95)))
+                            .setScale(2, RoundingMode.HALF_UP));
             act.setOwner(owners.get(i % owners.size()));
             act.setViewCount(ThreadLocalRandom.current().nextLong(0, 10_000));
             act.setFavouriteCount(0); // will be incremented by Favourite seeder via repository method

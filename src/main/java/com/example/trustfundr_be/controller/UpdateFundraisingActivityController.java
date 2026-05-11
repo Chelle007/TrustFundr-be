@@ -1,5 +1,6 @@
 package com.example.trustfundr_be.controller;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.UUID;
 
@@ -20,6 +21,7 @@ import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
@@ -47,6 +49,20 @@ public class UpdateFundraisingActivityController {
 
         @Size(max = 5000)
         private String description;
+
+        @Size(max = 255)
+        private String category;
+
+        @Size(max = 255)
+        private String location;
+
+        @DecimalMin(value = "0.0", inclusive = true, message = "Goal amount must be zero or positive")
+        private BigDecimal goalAmount;
+
+        @DecimalMin(value = "0.0", inclusive = true, message = "Current amount must be zero or positive")
+        private BigDecimal currentAmount;
+
+        private String imageUrl;
     }
 
     @Data
@@ -55,6 +71,11 @@ public class UpdateFundraisingActivityController {
         private UUID id;
         private String title;
         private String description;
+        private String category;
+        private String location;
+        private BigDecimal goalAmount;
+        private BigDecimal currentAmount;
+        private String imageUrl;
         private long viewCount;
         private long favouriteCount;
         private Instant completedAt;

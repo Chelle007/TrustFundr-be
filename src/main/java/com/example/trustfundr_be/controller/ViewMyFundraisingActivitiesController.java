@@ -1,5 +1,6 @@
 package com.example.trustfundr_be.controller;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
@@ -38,6 +39,11 @@ public class ViewMyFundraisingActivitiesController {
         private UUID id;
         private String title;
         private String description;
+        private String category;
+        private String location;
+        private BigDecimal goalAmount;
+        private BigDecimal currentAmount;
+        private String imageUrl;
         private long viewCount;
         private long favouriteCount;
         private Instant completedAt;

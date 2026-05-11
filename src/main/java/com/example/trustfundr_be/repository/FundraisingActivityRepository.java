@@ -1,5 +1,6 @@
 package com.example.trustfundr_be.repository;
 
+import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.Optional;
@@ -35,7 +36,9 @@ public interface FundraisingActivityRepository
 
     @Query("SELECT f FROM FundraisingActivity f WHERE f.owner.username = :ownerUsername AND f.completedAt IS NULL AND ("
             + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))))")
+            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))))")
     List<FundraisingActivity> searchForOwner(@Param("ownerUsername") String ownerUsername, @Param("q") String q,
             Sort sort);
 
@@ -46,7 +49,9 @@ public interface FundraisingActivityRepository
 
     @Query("SELECT f FROM FundraisingActivity f WHERE f.owner.username = :ownerUsername AND f.completedAt IS NOT NULL AND ("
             + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%')))) "
+            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))) "
             + "ORDER BY f.completedAt DESC")
     List<FundraisingActivity> searchCompletedForOwner(@Param("ownerUsername") String ownerUsername, @Param("q") String q);
 
@@ -63,7 +68,9 @@ public interface FundraisingActivityRepository
 
     @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE "
             + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) "
+            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))) "
             + "ORDER BY f.createdAt DESC")
     List<FundraisingActivity> searchAllPublic(@Param("q") String q);
 
@@ -117,6 +124,9 @@ class FundraisingActivityRepositoryImpl implements FundraisingActivityRepository
         entity.setViewCount(0);
         entity.setFavouriteCount(0);
         entity.setCompletedAt(null);
+        if (entity.getCurrentAmount() == null) {
+            entity.setCurrentAmount(BigDecimal.ZERO);
+        }
         entityManager.persist(entity);
         entityManager.flush();
         return entity;
@@ -141,7 +151,15 @@ class FundraisingActivityRepositoryImpl implements FundraisingActivityRepository
             throw new FundraisingActivityException(HttpStatus.BAD_REQUEST,
                     "Cannot update a completed fundraising activity");
         }
-        modelMapper.map(request, entity);
+        entity.setTitle(request.getTitle().trim());
+        entity.setDescription(request.getDescription());
+        entity.setCategory(request.getCategory());
+        entity.setLocation(request.getLocation());
+        entity.setGoalAmount(request.getGoalAmount());
+        if (request.getCurrentAmount() != null) {
+            entity.setCurrentAmount(request.getCurrentAmount());
+        }
+        entity.setImageUrl(request.getImageUrl());
         entityManager.flush();
         return entity;
     }
