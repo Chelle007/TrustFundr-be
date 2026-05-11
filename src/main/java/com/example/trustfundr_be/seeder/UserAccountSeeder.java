@@ -34,7 +34,7 @@ public class UserAccountSeeder {
             new AccountSeed("Admin", "admin", "Michelle Chan", "admin123"),
             new AccountSeed("Donee", "donee", "Vanness Yang", "donee123"),
             new AccountSeed("Fund Raiser", "fundraiser", "Jane", "fundraiser123"),
-            new AccountSeed("Platform Management", "platform", "Endyano", "platform123"));
+            new AccountSeed("Platform Manager", "platform", "Endyano", "platform123"));
 
     private record ProfileSeed(String name, String description) {
     }
@@ -43,7 +43,7 @@ public class UserAccountSeeder {
             new ProfileSeed("Admin", "User admin profile"),
             new ProfileSeed("Donee", "Recipient or beneficiary of raised funds"),
             new ProfileSeed("Fund Raiser", "Creates and manages fundraising campaigns"),
-            new ProfileSeed("Platform Management", "Platform administration and oversight"));
+            new ProfileSeed("Platform Manager", "Platform administration and oversight"));
 
     public void seedUserAccounts() {
         if (userAccountRepository.count() >= 10) {

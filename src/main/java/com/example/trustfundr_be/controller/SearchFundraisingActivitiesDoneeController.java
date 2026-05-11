@@ -2,10 +2,12 @@ package com.example.trustfundr_be.controller;
 
 import java.math.BigDecimal;
 import java.time.Instant;
-import java.util.List;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
@@ -14,10 +16,14 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.trustfundr_be.model.FundraisingActivity;
+import com.example.trustfundr_be.model.dto.PageResponse;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -54,11 +60,20 @@ public class SearchFundraisingActivitiesDoneeController {
     @PreAuthorize("hasRole('DONEE')")
     @GetMapping("/search-fundraising-activities")
     @Transactional(readOnly = true)
-    public List<SearchFundraisingActivitiesDoneeResponse> searchFundraisingActivities(
-            @RequestParam("q") @NotBlank(message = "Search query is required") String q) {
-        return fundraisingActivityRepository.searchAllPublic(q.trim()).stream()
-                // Map fundraising activity to response
-                .map(a -> modelMapper.map(a, SearchFundraisingActivitiesDoneeResponse.class))
-                .toList();
+    public PageResponse<SearchFundraisingActivitiesDoneeResponse> searchFundraisingActivities(
+            @RequestParam("q") @NotBlank(message = "Search query is required") String q,
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
+        Pageable pageable = PageRequest.of(page, size);
+        Page<FundraisingActivity> result =
+                fundraisingActivityRepository.searchAllPublicPage(q.trim(), pageable);
+        return new PageResponse<>(
+                result.getContent().stream()
+                        .map(a -> modelMapper.map(a, SearchFundraisingActivitiesDoneeResponse.class))
+                        .toList(),
+                result.getTotalElements(),
+                result.getTotalPages(),
+                result.getNumber(),
+                result.getSize());
     }
 }

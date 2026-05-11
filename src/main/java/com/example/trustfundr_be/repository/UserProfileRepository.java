@@ -18,7 +18,8 @@ import com.example.trustfundr_be.model.UserProfile;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
+
+import org.springframework.context.annotation.Lazy;
 
 public interface UserProfileRepository extends JpaRepository<UserProfile, UUID>, UserProfileRepositoryCustom {
 
@@ -40,13 +41,20 @@ interface UserProfileRepositoryCustom {
     UserProfile createUserProfile(CreateUserProfileController.CreateUserProfileRequest request);
 }
 
-@RequiredArgsConstructor
 class UserProfileRepositoryImpl implements UserProfileRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     private final ModelMapper modelMapper;
+    private final UserProfileRepository userProfiles;
+
+    UserProfileRepositoryImpl(
+            ModelMapper modelMapper,
+            @Lazy UserProfileRepository userProfiles) {
+        this.modelMapper = modelMapper;
+        this.userProfiles = userProfiles;
+    }
 
     @Override
     public UserProfile updateUserProfile(UUID id, UpdateUserProfileController.UpdateUserProfileRequest request) {
@@ -73,8 +81,6 @@ class UserProfileRepositoryImpl implements UserProfileRepositoryCustom {
     @Override
     public UserProfile createUserProfile(CreateUserProfileController.CreateUserProfileRequest request) {
         UserProfile userProfile = modelMapper.map(request, UserProfile.class);
-        entityManager.persist(userProfile);
-        entityManager.flush();
-        return userProfile;
+        return userProfiles.save(userProfile);
     }
 }

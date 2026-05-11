@@ -4,7 +4,9 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.time.LocalDate;
 import java.time.ZoneOffset;
+import java.util.List;
 
+import org.springframework.data.domain.PageRequest;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.example.trustfundr_be.model.dto.PlatformReportDonationRowDto;
 import com.example.trustfundr_be.repository.DonationRepository;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
@@ -28,6 +31,7 @@ import lombok.RequiredArgsConstructor;
 public class GenerateDailyReportController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
+    private static final int REPORT_DETAIL_LIMIT = 25;
 
     private final FundraisingActivityRepository fundraisingActivityRepository;
     private final DonationRepository donationRepository;
@@ -47,6 +51,9 @@ public class GenerateDailyReportController {
         // Aggregates over activities created in the reporting window
         private long totalViews;
         private long totalFavourites;
+
+        /** Largest donations in the window (detail table; capped on server). */
+        private List<PlatformReportDonationRowDto> topDonations;
     }
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
@@ -80,6 +87,13 @@ public class GenerateDailyReportController {
 
         response.setTotalViews(totalViews);
         response.setTotalFavourites(totalFavourites);
+
+        List<PlatformReportDonationRowDto> topRows = donationRepository
+                .findTopDonationsBetween(startAt, endAt, PageRequest.of(0, REPORT_DETAIL_LIMIT))
+                .stream()
+                .map(PlatformReportDonationRowDto::fromEntity)
+                .toList();
+        response.setTopDonations(topRows);
         return response;
     }
 }

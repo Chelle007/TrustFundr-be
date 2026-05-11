@@ -21,7 +21,7 @@ public class UserProfileSeeder {
             new ProfileSeed("Admin", "User admin profile"),
             new ProfileSeed("Donee", "Recipient or beneficiary of raised funds"),
             new ProfileSeed("Fund Raiser", "Creates and manages fundraising campaigns"),
-            new ProfileSeed("Platform Management", "Platform administration and oversight"));
+            new ProfileSeed("Platform Manager", "Platform administration and oversight"));
 
     public void seedUserProfiles() {
         if (userProfileRepository.count() >= 10) {

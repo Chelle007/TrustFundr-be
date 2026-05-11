@@ -4,6 +4,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.FieldError;
@@ -45,6 +46,16 @@ public class GlobalExceptionHandler {
     public ResponseEntity<Map<String, String>> handleUserAccountException(UserAccountException ex) {
         String message = ex.getMessage() != null ? ex.getMessage() : "Request failed";
         return ResponseEntity.status(ex.getStatus()).body(Map.of("message", message));
+    }
+
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
+        String root = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
+        String message = "This change conflicts with existing data (for example a username that is already taken).";
+        if (root != null && root.toLowerCase().contains("username")) {
+            message = "That username is already taken. Choose a different username.";
+        }
+        return ResponseEntity.status(HttpStatus.CONFLICT).body(Map.of("message", message));
     }
 
     @ExceptionHandler(FundraisingActivityException.class)

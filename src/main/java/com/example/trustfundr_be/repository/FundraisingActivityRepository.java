@@ -7,6 +7,8 @@ import java.util.Optional;
 import java.util.UUID;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -63,16 +65,22 @@ public interface FundraisingActivityRepository
     @Query("UPDATE FundraisingActivity f SET f.favouriteCount = f.favouriteCount + 1 WHERE f.id = :id AND f.deletedAt IS NULL")
     void incrementFavouriteCountById(@Param("id") UUID id);
 
-    @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner ORDER BY f.createdAt DESC")
-    List<FundraisingActivity> findAllPublicOrderByCreatedAtDesc();
+    @Query("SELECT f FROM FundraisingActivity f ORDER BY f.createdAt DESC")
+    Page<FundraisingActivity> findAllPublicPage(Pageable pageable);
 
-    @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE "
-            + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-            + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))) "
-            + "ORDER BY f.createdAt DESC")
-    List<FundraisingActivity> searchAllPublic(@Param("q") String q);
+    @Query(
+            value = "SELECT f FROM FundraisingActivity f WHERE "
+                    + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))) "
+                    + "ORDER BY f.createdAt DESC",
+            countQuery = "SELECT count(f) FROM FundraisingActivity f WHERE "
+                    + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))")
+    Page<FundraisingActivity> searchAllPublicPage(@Param("q") String q, Pageable pageable);
 
     @Query("SELECT f FROM FundraisingActivity f LEFT JOIN FETCH f.owner WHERE f.id = :id")
     Optional<FundraisingActivity> findByIdWithOwner(@Param("id") UUID id);

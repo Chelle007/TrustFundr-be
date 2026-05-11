@@ -81,7 +81,8 @@ public class LoginController {
                 role = "FUNDRAISER";
             } else if ("Donee".equalsIgnoreCase(profileName)) {
                 role = "DONEE";
-            } else if ("Platform Management".equalsIgnoreCase(profileName)) {
+            } else if ("Platform Manager".equalsIgnoreCase(profileName)
+                    || "Platform Management".equalsIgnoreCase(profileName)) {
                 role = "PLATFORM_MANAGEMENT";
             }
         }

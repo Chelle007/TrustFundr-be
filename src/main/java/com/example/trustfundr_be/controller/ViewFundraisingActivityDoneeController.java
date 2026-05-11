@@ -48,6 +48,9 @@ public class ViewFundraisingActivityDoneeController {
         private Instant createdAt;
         private Instant updatedAt;
         private String ownerFullName;
+        /** Denormalised counters; re-loaded after increment so the response reflects the DB. */
+        private long viewCount;
+        private long favouriteCount;
     }
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
@@ -62,6 +65,11 @@ public class ViewFundraisingActivityDoneeController {
 
         // Count a view when a donee opens the activity detail (denormalized counter on the activity)
         fundraisingActivityRepository.incrementViewCountById(id);
+
+        // Bulk UPDATE clears the persistence context; re-load so viewCount (and favouriteCount) match the DB
+        activity = fundraisingActivityRepository.findByIdWithOwner(id)
+                .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND,
+                        "Fundraising activity not found"));
 
         // Map fundraising activity to response
         ViewFundraisingActivityDoneeResponse response = modelMapper.map(activity, ViewFundraisingActivityDoneeResponse.class);

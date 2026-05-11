@@ -4,11 +4,12 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.http.HttpStatus;
-import org.modelmapper.ModelMapper;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.trustfundr_be.controller.CreateUserAccountController;
@@ -19,7 +20,6 @@ import com.example.trustfundr_be.model.UserProfile;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 
 public interface UserAccountRepository extends JpaRepository<UserAccount, UUID>, UserAccountRepositoryCustom {
 
@@ -32,8 +32,9 @@ public interface UserAccountRepository extends JpaRepository<UserAccount, UUID>,
     @Query("SELECT DISTINCT a FROM UserAccount a LEFT JOIN FETCH a.userProfile p WHERE "
             + "LOWER(a.username) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "LOWER(a.fullName) LIKE LOWER(CONCAT('%', :q, '%')) OR "
-            + "(p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))) "
-            + "ORDER BY LOWER(a.fullName) ASC, LOWER(a.username) ASC")
+            + "(p IS NOT NULL AND LOWER(p.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "LOWER(cast(a.id AS string)) LIKE LOWER(CONCAT('%', :q, '%')) "
+            + "ORDER BY a.fullName ASC, a.username ASC")
     List<UserAccount> searchByKeyword(@Param("q") String q);
 }
 
@@ -48,15 +49,26 @@ interface UserAccountRepositoryCustom {
     UserAccount createUserAccount(CreateUserAccountController.CreateUserAccountRequest request);
 }
 
-@RequiredArgsConstructor
 class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
 
+    private final ModelMapper modelMapper;
     private final PasswordEncoder passwordEncoder;
     private final UserProfileRepository userProfileRepository;
-    private final ModelMapper modelMapper;
+    private final UserAccountRepository userAccounts;
+
+    UserAccountRepositoryImpl(
+            ModelMapper modelMapper,
+            PasswordEncoder passwordEncoder,
+            UserProfileRepository userProfileRepository,
+            @Lazy UserAccountRepository userAccounts) {
+        this.modelMapper = modelMapper;
+        this.passwordEncoder = passwordEncoder;
+        this.userProfileRepository = userProfileRepository;
+        this.userAccounts = userAccounts;
+    }
 
     @Override
     public UserAccount updateUserAccount(UUID id, UpdateUserAccountController.UpdateUserAccountRequest request) {
@@ -64,7 +76,10 @@ class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
         if (userAccount == null) {
             throw new UserAccountException(HttpStatus.NOT_FOUND, "User account not found");
         }
-        modelMapper.map(request, userAccount);
+        // Do not use ModelMapper here: mapping UpdateUserAccountRequest.password (null/absent) onto the entity
+        // can match passwordHashString and clear the stored hash, breaking login and violating NOT NULL.
+        userAccount.setFullName(request.getFullName().trim());
+        userAccount.setUsername(request.getUsername().trim());
         if (request.getUserProfileId() != null) {
             UserProfile profile = userProfileRepository.findById(request.getUserProfileId())
                     .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
@@ -91,14 +106,13 @@ class UserAccountRepositoryImpl implements UserAccountRepositoryCustom {
 
     @Override
     public UserAccount createUserAccount(CreateUserAccountController.CreateUserAccountRequest request) {
-        UserProfile userProfile = userProfileRepository.findById(request.getUserProfileId())
-                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found"));
         UserAccount userAccount = modelMapper.map(request, UserAccount.class);
+        userAccount.setFullName(request.getFullName().trim());
+        userAccount.setUsername(request.getUsername().trim());
         userAccount.setPasswordHashString(passwordEncoder.encode(request.getPassword()));
-        userAccount.setUserProfile(userProfile);
-        entityManager.persist(userAccount);
-        entityManager.flush();
-        return userAccount;
+        userAccount.setUserProfile(userProfileRepository.findById(request.getUserProfileId())
+                .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User profile not found")));
+        return userAccounts.save(userAccount);
     }
 
     @Override
