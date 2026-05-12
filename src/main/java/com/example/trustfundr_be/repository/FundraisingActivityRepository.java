@@ -31,6 +31,9 @@ public interface FundraisingActivityRepository
 
     Optional<FundraisingActivity> findByIdAndOwnerUsername(UUID id, String ownerUsername);
 
+    @Query("SELECT f FROM FundraisingActivity f WHERE f.imageUrl IS NULL OR TRIM(f.imageUrl) = ''")
+    Page<FundraisingActivity> findMissingHeroImages(Pageable pageable);
+
     @Query("SELECT f FROM FundraisingActivity f WHERE f.owner.username = :ownerUsername AND f.completedAt IS NULL "
             + "ORDER BY f.createdAt DESC")
     List<FundraisingActivity> findActiveByOwnerUsernameOrderByCreatedAtDesc(

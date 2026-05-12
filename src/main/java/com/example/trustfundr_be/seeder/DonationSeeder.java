@@ -95,7 +95,7 @@ public class DonationSeeder {
         d.setDonor(donee);
         d.setFundraisingActivity(activity);
         d.setAmount(randomAmount());
-        d.setMemo("Demo donation (donee / donee123)");
+        d.setMemo(null);
         donationRepository.saveAndFlush(d);
         applyBackdatedTimestamps(d.getId(), randomPastInstant());
     }
