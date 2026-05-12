@@ -2,11 +2,15 @@ package com.example.trustfundr_be.seeder;
 
 import java.math.BigDecimal;
 import java.math.RoundingMode;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.UUID;
 import java.util.concurrent.ThreadLocalRandom;
 
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import com.example.trustfundr_be.model.Donation;
 import com.example.trustfundr_be.model.FundraisingActivity;
@@ -15,6 +19,8 @@ import com.example.trustfundr_be.repository.DonationRepository;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 import com.example.trustfundr_be.repository.UserAccountRepository;
 
+import jakarta.persistence.EntityManager;
+import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
 
@@ -23,13 +29,24 @@ import net.datafaker.Faker;
 public class DonationSeeder {
 
     private static final int TARGET_COUNT = 100;
+    /** Share of new seed rows that get a historical `created_at` (reports / donation history). */
+    private static final double FRACTION_PAST_DONATIONS = 0.65;
+    /** If the DB already has donations but almost none older than a week, nudge some rows back in time once. */
+    private static final int MIN_HISTORICAL_DONATIONS = 5;
+    private static final int BACKFILL_CAP = 40;
 
     private final DonationRepository donationRepository;
     private final UserAccountRepository userAccountRepository;
     private final FundraisingActivityRepository fundraisingActivityRepository;
     private final Faker faker;
 
+    @PersistenceContext
+    private EntityManager entityManager;
+
+    @Transactional
     public void seedDonations() {
+        maybeBackfillSparseHistoricalTimestamps();
+
         long current = donationRepository.count();
         if (current >= 10) {
             return;
@@ -48,8 +65,51 @@ public class DonationSeeder {
             d.setFundraisingActivity(activities.get(ThreadLocalRandom.current().nextInt(activities.size())));
             d.setAmount(randomAmount());
             d.setMemo(ThreadLocalRandom.current().nextInt(5) == 0 ? null : faker.lorem().sentence(10));
-            donationRepository.save(d);
+            donationRepository.saveAndFlush(d);
+            if (ThreadLocalRandom.current().nextDouble() < FRACTION_PAST_DONATIONS) {
+                applyBackdatedTimestamps(d.getId(), randomPastInstant());
+            }
         }
+    }
+
+    private void maybeBackfillSparseHistoricalTimestamps() {
+        long total = donationRepository.count();
+        if (total == 0) {
+            return;
+        }
+        Instant weekAgo = Instant.now().minus(7, ChronoUnit.DAYS);
+        long olderThanWeek = donationRepository.countByCreatedAtBefore(weekAgo);
+        if (olderThanWeek >= MIN_HISTORICAL_DONATIONS) {
+            return;
+        }
+
+        int limit = (int) Math.min(BACKFILL_CAP, total);
+        @SuppressWarnings("unchecked")
+        List<UUID> ids = entityManager
+                .createNativeQuery("SELECT id FROM donations ORDER BY random() LIMIT :lim")
+                .setParameter("lim", limit)
+                .getResultList();
+
+        for (UUID id : ids) {
+            applyBackdatedTimestamps(id, randomPastInstant());
+        }
+    }
+
+    private void applyBackdatedTimestamps(UUID id, Instant when) {
+        entityManager
+                .createNativeQuery(
+                        "UPDATE donations SET created_at = :ts, updated_at = :ts WHERE id = :id")
+                .setParameter("ts", when)
+                .setParameter("id", id)
+                .executeUpdate();
+    }
+
+    /** A few hours to ~400 days in the past (UTC clock on server). */
+    private static Instant randomPastInstant() {
+        long minSec = 2 * 3600L;
+        long maxSec = 400L * 24 * 3600;
+        long span = ThreadLocalRandom.current().nextLong(minSec, maxSec);
+        return Instant.now().minusSeconds(span);
     }
 
     private BigDecimal randomAmount() {
@@ -57,4 +117,3 @@ public class DonationSeeder {
         return BigDecimal.valueOf(raw).setScale(2, RoundingMode.HALF_UP);
     }
 }
-

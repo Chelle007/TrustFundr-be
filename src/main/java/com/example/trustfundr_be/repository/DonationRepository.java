@@ -14,6 +14,8 @@ import com.example.trustfundr_be.model.Donation;
 
 public interface DonationRepository extends JpaRepository<Donation, UUID> {
 
+    long countByCreatedAtBefore(Instant cutoff);
+
     @Query("SELECT d FROM Donation d LEFT JOIN FETCH d.fundraisingActivity WHERE d.donor.username = :username "
             + "ORDER BY d.createdAt DESC")
     List<Donation> findByDonorUsernameForHistory(@Param("username") String username);

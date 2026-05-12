@@ -4,6 +4,7 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Sort;
@@ -12,11 +13,14 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.example.trustfundr_be.model.FundraisingActivity;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -34,6 +38,9 @@ import lombok.RequiredArgsConstructor;
 public class SearchFundraisingActivitiesController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
+    private static final String STATUS_ALL = "all";
+    private static final String STATUS_ACTIVE = "active";
+    private static final String STATUS_COMPLETED = "completed";
 
     private final FundraisingActivityRepository fundraisingActivityRepository;
     private final ModelMapper modelMapper;
@@ -62,12 +69,33 @@ public class SearchFundraisingActivitiesController {
     @Transactional(readOnly = true)
     public List<SearchFundraisingActivitiesResponse> searchFundraisingActivities(
             @AuthenticationPrincipal UserDetails userDetails,
-            @RequestParam("q") @NotBlank(message = "Search query is required") String q) {
-        return fundraisingActivityRepository
-                .searchForOwner(userDetails.getUsername(), q.trim(),
-                        Sort.by(Sort.Direction.DESC, "createdAt"))
-                .stream()
-                // Map fundraising activity to response
+            @RequestParam("q") @NotBlank(message = "Search query is required") String q,
+            @RequestParam(value = "status", required = false, defaultValue = STATUS_ALL) String status) {
+        String s = status == null ? STATUS_ALL : status.trim().toLowerCase();
+        if (!STATUS_ALL.equals(s) && !STATUS_ACTIVE.equals(s) && !STATUS_COMPLETED.equals(s)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "status must be \"" + STATUS_ALL + "\", \"" + STATUS_ACTIVE + "\", or \"" + STATUS_COMPLETED + "\"");
+        }
+
+        String username = userDetails.getUsername();
+        String query = q.trim();
+
+        Stream<FundraisingActivity> activityStream;
+        if (STATUS_COMPLETED.equals(s)) {
+            activityStream = fundraisingActivityRepository.searchCompletedForOwner(username, query).stream();
+        } else if (STATUS_ACTIVE.equals(s)) {
+            activityStream = fundraisingActivityRepository
+                    .searchForOwner(username, query, Sort.by(Sort.Direction.DESC, "createdAt"))
+                    .stream();
+        } else {
+            activityStream = Stream.concat(
+                    fundraisingActivityRepository
+                            .searchForOwner(username, query, Sort.by(Sort.Direction.DESC, "createdAt"))
+                            .stream(),
+                    fundraisingActivityRepository.searchCompletedForOwner(username, query).stream());
+        }
+
+        return activityStream
                 .map(a -> modelMapper.map(a, SearchFundraisingActivitiesResponse.class))
                 .toList();
     }

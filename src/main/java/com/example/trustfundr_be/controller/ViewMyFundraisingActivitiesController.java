@@ -4,16 +4,21 @@ import java.math.BigDecimal;
 import java.time.Instant;
 import java.util.List;
 import java.util.UUID;
+import java.util.stream.Stream;
 
 import org.modelmapper.ModelMapper;
+import org.springframework.http.HttpStatus;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.server.ResponseStatusException;
 
+import com.example.trustfundr_be.model.FundraisingActivity;
 import com.example.trustfundr_be.repository.FundraisingActivityRepository;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -29,6 +34,9 @@ import lombok.RequiredArgsConstructor;
 public class ViewMyFundraisingActivitiesController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
+    private static final String STATUS_ALL = "all";
+    private static final String STATUS_ACTIVE = "active";
+    private static final String STATUS_COMPLETED = "completed";
 
     private final FundraisingActivityRepository fundraisingActivityRepository;
     private final ModelMapper modelMapper;
@@ -56,11 +64,34 @@ public class ViewMyFundraisingActivitiesController {
     @GetMapping("/view-my-fundraising-activities")
     @Transactional(readOnly = true)
     public List<ViewMyFundraisingActivitiesResponse> viewMyFundraisingActivities(
-            @AuthenticationPrincipal UserDetails userDetails) {
-        return fundraisingActivityRepository.findActiveByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
-                .stream()
-                // Map fundraising activity to response
-                .map(a -> modelMapper.map(a, ViewMyFundraisingActivitiesResponse.class))
-                .toList();
+            @AuthenticationPrincipal UserDetails userDetails,
+            @RequestParam(value = "status", required = false, defaultValue = STATUS_ALL) String status) {
+        String s = status == null ? STATUS_ALL : status.trim().toLowerCase();
+        if (!STATUS_ALL.equals(s) && !STATUS_ACTIVE.equals(s) && !STATUS_COMPLETED.equals(s)) {
+            throw new ResponseStatusException(HttpStatus.BAD_REQUEST,
+                    "status must be \"" + STATUS_ALL + "\", \"" + STATUS_ACTIVE + "\", or \"" + STATUS_COMPLETED + "\"");
+        }
+
+        Stream<FundraisingActivity> stream;
+        if (STATUS_COMPLETED.equals(s)) {
+            stream = fundraisingActivityRepository
+                    .findCompletedByOwnerUsernameOrderByCompletedAtDesc(userDetails.getUsername())
+                    .stream();
+        } else if (STATUS_ACTIVE.equals(s)) {
+            stream = fundraisingActivityRepository
+                    .findActiveByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
+                    .stream();
+        } else {
+            // Active first, then completed (newest completion last within completed group)
+            stream = Stream.concat(
+                    fundraisingActivityRepository
+                            .findActiveByOwnerUsernameOrderByCreatedAtDesc(userDetails.getUsername())
+                            .stream(),
+                    fundraisingActivityRepository
+                            .findCompletedByOwnerUsernameOrderByCompletedAtDesc(userDetails.getUsername())
+                            .stream());
+        }
+
+        return stream.map(a -> modelMapper.map(a, ViewMyFundraisingActivitiesResponse.class)).toList();
     }
 }
