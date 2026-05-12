@@ -16,6 +16,8 @@ public interface DonationRepository extends JpaRepository<Donation, UUID> {
 
     long countByCreatedAtBefore(Instant cutoff);
 
+    long countByDonorUsername(String username);
+
     @Query("SELECT d FROM Donation d LEFT JOIN FETCH d.fundraisingActivity WHERE d.donor.username = :username "
             + "ORDER BY d.createdAt DESC")
     List<Donation> findByDonorUsernameForHistory(@Param("username") String username);

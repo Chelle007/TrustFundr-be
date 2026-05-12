@@ -34,6 +34,8 @@ public class DonationSeeder {
     /** If the DB already has donations but almost none older than a week, nudge some rows back in time once. */
     private static final int MIN_HISTORICAL_DONATIONS = 5;
     private static final int BACKFILL_CAP = 40;
+    /** Demo donee login is username {@code donee} / password {@code donee123} — not guaranteed by random donor pick. */
+    private static final String DEMO_DONEE_USERNAME = "donee";
 
     private final DonationRepository donationRepository;
     private final UserAccountRepository userAccountRepository;
@@ -48,28 +50,54 @@ public class DonationSeeder {
         maybeBackfillSparseHistoricalTimestamps();
 
         long current = donationRepository.count();
-        if (current >= 10) {
-            return;
-        }
+        if (current < 10) {
+            List<UserAccount> donors = new ArrayList<>(userAccountRepository.findAll());
+            List<FundraisingActivity> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
+            if (donors.isEmpty() || activities.isEmpty()) {
+                throw new IllegalStateException("Missing donors or activities; cannot seed donations");
+            }
 
-        List<UserAccount> donors = new ArrayList<>(userAccountRepository.findAll());
-        List<FundraisingActivity> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
-        if (donors.isEmpty() || activities.isEmpty()) {
-            throw new IllegalStateException("Missing donors or activities; cannot seed donations");
-        }
-
-        int remaining = (int) (TARGET_COUNT - current);
-        for (int i = 0; i < remaining; i++) {
-            Donation d = new Donation();
-            d.setDonor(donors.get(ThreadLocalRandom.current().nextInt(donors.size())));
-            d.setFundraisingActivity(activities.get(ThreadLocalRandom.current().nextInt(activities.size())));
-            d.setAmount(randomAmount());
-            d.setMemo(ThreadLocalRandom.current().nextInt(5) == 0 ? null : faker.lorem().sentence(10));
-            donationRepository.saveAndFlush(d);
-            if (ThreadLocalRandom.current().nextDouble() < FRACTION_PAST_DONATIONS) {
-                applyBackdatedTimestamps(d.getId(), randomPastInstant());
+            int remaining = (int) (TARGET_COUNT - current);
+            for (int i = 0; i < remaining; i++) {
+                Donation d = new Donation();
+                d.setDonor(donors.get(ThreadLocalRandom.current().nextInt(donors.size())));
+                d.setFundraisingActivity(activities.get(ThreadLocalRandom.current().nextInt(activities.size())));
+                d.setAmount(randomAmount());
+                d.setMemo(ThreadLocalRandom.current().nextInt(5) == 0 ? null : faker.lorem().sentence(10));
+                donationRepository.saveAndFlush(d);
+                if (ThreadLocalRandom.current().nextDouble() < FRACTION_PAST_DONATIONS) {
+                    applyBackdatedTimestamps(d.getId(), randomPastInstant());
+                }
             }
         }
+
+        ensureDemoDoneeHasAtLeastOneDonation();
+    }
+
+    /**
+     * Ensures the seeded donee account (username {@code donee}, password {@code donee123}) has at least one
+     * donation for demo donation history. Bulk seeding picks donors at random, so this is explicit — not Faker.
+     */
+    private void ensureDemoDoneeHasAtLeastOneDonation() {
+        if (donationRepository.countByDonorUsername(DEMO_DONEE_USERNAME) > 0) {
+            return;
+        }
+        UserAccount donee = userAccountRepository.findByUsernameIgnoreCase(DEMO_DONEE_USERNAME).orElse(null);
+        if (donee == null) {
+            return;
+        }
+        List<FundraisingActivity> activities = fundraisingActivityRepository.findAll();
+        if (activities.isEmpty()) {
+            return;
+        }
+        FundraisingActivity activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
+        Donation d = new Donation();
+        d.setDonor(donee);
+        d.setFundraisingActivity(activity);
+        d.setAmount(randomAmount());
+        d.setMemo("Demo donation (donee / donee123)");
+        donationRepository.saveAndFlush(d);
+        applyBackdatedTimestamps(d.getId(), randomPastInstant());
     }
 
     private void maybeBackfillSparseHistoricalTimestamps() {
