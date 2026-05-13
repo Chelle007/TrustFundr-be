@@ -51,7 +51,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(DataIntegrityViolationException.class)
     public ResponseEntity<Map<String, String>> handleDataIntegrity(DataIntegrityViolationException ex) {
         String root = ex.getMostSpecificCause() != null ? ex.getMostSpecificCause().getMessage() : ex.getMessage();
-        String message = "This change conflicts with existing data (for example a username that is already taken).";
+        String message = "The username has been taken.";
         if (root != null && root.toLowerCase().contains("username")) {
             message = "That username is already taken. Choose a different username.";
         }
