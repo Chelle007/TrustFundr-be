@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ public class ViewUserAccountController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final UserAccountRepository userAccountRepository;
+    private final UserAccount userAccountRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -51,7 +51,7 @@ public class ViewUserAccountController {
                 .toList();
     }
 
-    private UserAccountResponse toResponse(UserAccount account) {
+    private UserAccountResponse toResponse(UserAccountModel account) {
         // Map account fields to response
         UserAccountResponse response = modelMapper.map(account, UserAccountResponse.class);
         

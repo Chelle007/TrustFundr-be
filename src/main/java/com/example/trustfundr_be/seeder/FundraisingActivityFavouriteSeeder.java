@@ -11,12 +11,12 @@ import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.model.FundraisingActivityFavourite;
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.FundraisingActivityFavouriteRepository;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.FundraisingActivityFavouriteModel;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.FundraisingActivityFavourite;
+import com.example.trustfundr_be.repository.FundraisingActivity;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import lombok.RequiredArgsConstructor;
 
@@ -26,9 +26,9 @@ public class FundraisingActivityFavouriteSeeder {
 
     private static final int TARGET_COUNT = 100;
 
-    private final FundraisingActivityFavouriteRepository favouriteRepository;
-    private final UserAccountRepository userAccountRepository;
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivityFavourite favouriteRepository;
+    private final UserAccount userAccountRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
 
     @Transactional
     public void seedFavourites() {
@@ -37,8 +37,8 @@ public class FundraisingActivityFavouriteSeeder {
             return;
         }
 
-        List<UserAccount> donees = new ArrayList<>(userAccountRepository.findAll());
-        List<FundraisingActivity> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
+        List<UserAccountModel> donees = new ArrayList<>(userAccountRepository.findAll());
+        List<FundraisingActivityModel> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
         if (donees.isEmpty() || activities.isEmpty()) {
             throw new IllegalStateException("Missing donees or activities; cannot seed favourites");
         }
@@ -50,8 +50,8 @@ public class FundraisingActivityFavouriteSeeder {
 
         while (created < remaining && attempts < remaining * 20) {
             attempts++;
-            UserAccount donee = donees.get(ThreadLocalRandom.current().nextInt(donees.size()));
-            FundraisingActivity activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
+            UserAccountModel donee = donees.get(ThreadLocalRandom.current().nextInt(donees.size()));
+            FundraisingActivityModel activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
 
             UUID doneeId = donee.getId();
             UUID activityId = activity.getId();
@@ -65,7 +65,7 @@ public class FundraisingActivityFavouriteSeeder {
             }
 
             try {
-                FundraisingActivityFavourite row = new FundraisingActivityFavourite();
+                FundraisingActivityFavouriteModel row = new FundraisingActivityFavouriteModel();
                 row.setDonee(donee);
                 row.setFundraisingActivity(activity);
                 favouriteRepository.save(row);

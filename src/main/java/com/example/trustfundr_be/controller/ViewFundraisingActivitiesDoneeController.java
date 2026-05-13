@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
 import com.example.trustfundr_be.model.dto.PageResponse;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -37,7 +37,7 @@ public class ViewFundraisingActivitiesDoneeController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -63,12 +63,12 @@ public class ViewFundraisingActivitiesDoneeController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<FundraisingActivity> result = fundraisingActivityRepository.findAllPublicPage(pageable);
+        Page<FundraisingActivityModel> result = fundraisingActivityRepository.findAllPublicPage(pageable);
         return toPageResponse(result);
     }
 
     private PageResponse<ViewFundraisingActivitiesDoneeResponse> toPageResponse(
-            Page<FundraisingActivity> page) {
+            Page<FundraisingActivityModel> page) {
         return new PageResponse<>(
                 page.getContent().stream()
                         .map(a -> modelMapper.map(a, ViewFundraisingActivitiesDoneeResponse.class))

@@ -11,8 +11,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ public class UpdateUserAccountController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final UserAccountRepository userAccountRepository;
+    private final UserAccount userAccountRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -69,7 +69,7 @@ public class UpdateUserAccountController {
     public UpdateUserAccountResponse updateUserAccount(@PathVariable UUID id,
             @Valid @RequestBody UpdateUserAccountRequest request) {
         // Update user account
-        UserAccount saved = userAccountRepository.updateUserAccount(id, request);
+        UserAccountModel saved = userAccountRepository.updateUserAccount(id, request);
 
         // Map saved user account to response
         UpdateUserAccountResponse response = modelMapper.map(saved, UpdateUserAccountResponse.class);

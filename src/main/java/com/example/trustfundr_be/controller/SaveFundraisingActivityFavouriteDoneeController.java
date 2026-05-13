@@ -13,9 +13,9 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivityFavourite;
+import com.example.trustfundr_be.model.FundraisingActivityFavouriteModel;
 import com.example.trustfundr_be.model.dto.DoneeFundraisingActivitySummary;
-import com.example.trustfundr_be.repository.FundraisingActivityFavouriteRepository;
+import com.example.trustfundr_be.repository.FundraisingActivityFavourite;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ public class SaveFundraisingActivityFavouriteDoneeController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityFavouriteRepository fundraisingActivityFavouriteRepository;
+    private final FundraisingActivityFavourite fundraisingActivityFavouriteRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -50,7 +50,7 @@ public class SaveFundraisingActivityFavouriteDoneeController {
     public SaveFundraisingActivityFavouriteDoneeResponse saveFavourite(
             @AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID activityId) {
         // Save favourite (idempotent if already saved)
-        FundraisingActivityFavourite saved = fundraisingActivityFavouriteRepository
+        FundraisingActivityFavouriteModel saved = fundraisingActivityFavouriteRepository
                 .saveFavourite(userDetails.getUsername(), activityId);
 
         // Map saved favourite to response

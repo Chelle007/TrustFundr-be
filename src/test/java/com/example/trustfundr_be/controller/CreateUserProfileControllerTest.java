@@ -14,21 +14,21 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserProfile;
 
 @ExtendWith(MockitoExtension.class)
 class CreateUserProfileControllerTest {
 
     @Mock
-    private UserProfileRepository userProfileRepository;
+    private UserProfile userProfileRepository;
 
     @Mock
     private ModelMapper modelMapper;
 
     @Test
     void createUserProfile_success() {
-        UserProfile saved = new UserProfile();
+        UserProfileModel saved = new UserProfileModel();
         UUID id = UUID.randomUUID();
         saved.setId(id);
         saved.setName("Admin");
@@ -37,9 +37,9 @@ class CreateUserProfileControllerTest {
         when(userProfileRepository.createUserProfile(any(CreateUserProfileController.CreateUserProfileRequest.class)))
                 .thenReturn(saved);
 
-        when(modelMapper.map(any(UserProfile.class), eq(CreateUserProfileController.CreateUserProfileResponse.class)))
+        when(modelMapper.map(any(UserProfileModel.class), eq(CreateUserProfileController.CreateUserProfileResponse.class)))
                 .thenAnswer(invocation -> {
-                    UserProfile up = invocation.getArgument(0);
+                    UserProfileModel up = invocation.getArgument(0);
                     CreateUserProfileController.CreateUserProfileResponse r =
                             new CreateUserProfileController.CreateUserProfileResponse();
                     r.setId(up.getId());

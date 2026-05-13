@@ -12,12 +12,12 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.trustfundr_be.model.Donation;
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.DonationRepository;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.DonationModel;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.Donation;
+import com.example.trustfundr_be.repository.FundraisingActivity;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -37,9 +37,9 @@ public class DonationSeeder {
     /** Demo donee login is username {@code donee} / password {@code donee123} — not guaranteed by random donor pick. */
     private static final String DEMO_DONEE_USERNAME = "donee";
 
-    private final DonationRepository donationRepository;
-    private final UserAccountRepository userAccountRepository;
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final Donation donationRepository;
+    private final UserAccount userAccountRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final Faker faker;
 
     @PersistenceContext
@@ -51,15 +51,15 @@ public class DonationSeeder {
 
         long current = donationRepository.count();
         if (current < 10) {
-            List<UserAccount> donors = new ArrayList<>(userAccountRepository.findAll());
-            List<FundraisingActivity> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
+            List<UserAccountModel> donors = new ArrayList<>(userAccountRepository.findAll());
+            List<FundraisingActivityModel> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
             if (donors.isEmpty() || activities.isEmpty()) {
                 throw new IllegalStateException("Missing donors or activities; cannot seed donations");
             }
 
             int remaining = (int) (TARGET_COUNT - current);
             for (int i = 0; i < remaining; i++) {
-                Donation d = new Donation();
+                DonationModel d = new DonationModel();
                 d.setDonor(donors.get(ThreadLocalRandom.current().nextInt(donors.size())));
                 d.setFundraisingActivity(activities.get(ThreadLocalRandom.current().nextInt(activities.size())));
                 d.setAmount(randomAmount());
@@ -82,16 +82,16 @@ public class DonationSeeder {
         if (donationRepository.countByDonorUsername(DEMO_DONEE_USERNAME) > 0) {
             return;
         }
-        UserAccount donee = userAccountRepository.findByUsernameIgnoreCase(DEMO_DONEE_USERNAME).orElse(null);
+        UserAccountModel donee = userAccountRepository.findByUsernameIgnoreCase(DEMO_DONEE_USERNAME).orElse(null);
         if (donee == null) {
             return;
         }
-        List<FundraisingActivity> activities = fundraisingActivityRepository.findAll();
+        List<FundraisingActivityModel> activities = fundraisingActivityRepository.findAll();
         if (activities.isEmpty()) {
             return;
         }
-        FundraisingActivity activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
-        Donation d = new Donation();
+        FundraisingActivityModel activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
+        DonationModel d = new DonationModel();
         d.setDonor(donee);
         d.setFundraisingActivity(activity);
         d.setAmount(randomAmount());

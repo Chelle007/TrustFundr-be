@@ -18,7 +18,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class UserAccount extends BaseModel {
+public class UserAccountModel extends BaseModel {
 
 	@Column(nullable = false)
 	private String fullName;
@@ -32,6 +32,6 @@ public class UserAccount extends BaseModel {
 	@ManyToOne(fetch = FetchType.LAZY)
 	@NotFound(action = NotFoundAction.IGNORE)
 	@JoinColumn(name = "user_profile_id", nullable = false)
-	private UserProfile userProfile;
+	private UserProfileModel userProfile;
 
 }

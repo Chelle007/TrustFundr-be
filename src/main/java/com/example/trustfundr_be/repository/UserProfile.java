@@ -4,61 +4,60 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.modelmapper.ModelMapper;
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.domain.Sort;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
-import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 
 import com.example.trustfundr_be.controller.CreateUserProfileController;
 import com.example.trustfundr_be.controller.UpdateUserProfileController;
 import com.example.trustfundr_be.exception.UserProfileException;
-import com.example.trustfundr_be.model.UserProfile;
+import com.example.trustfundr_be.model.UserProfileModel;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 
-import org.springframework.context.annotation.Lazy;
+public interface UserProfile extends JpaRepository<UserProfileModel, UUID>, UserProfileCustom {
 
-public interface UserProfileRepository extends JpaRepository<UserProfile, UUID>, UserProfileRepositoryCustom {
+    Optional<UserProfileModel> findByName(String name);
 
-    Optional<UserProfile> findByName(String name);
+    Optional<UserProfileModel> findByNameIgnoreCase(String name);
 
-    Optional<UserProfile> findByNameIgnoreCase(String name);
-
-    @Query("SELECT u FROM UserProfile u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))"
+    @Query("SELECT u FROM UserProfileModel u WHERE LOWER(u.name) LIKE LOWER(CONCAT('%', :q, '%'))"
             + " OR (u.description IS NOT NULL AND LOWER(u.description) LIKE LOWER(CONCAT('%', :q, '%')))")
-    List<UserProfile> searchByKeyword(@Param("q") String q, Sort sort);
+    List<UserProfileModel> searchByKeyword(@Param("q") String q, Sort sort);
 }
 
-interface UserProfileRepositoryCustom {
+interface UserProfileCustom {
 
-    UserProfile updateUserProfile(UUID id, UpdateUserProfileController.UpdateUserProfileRequest request);
+    UserProfileModel updateUserProfile(UUID id, UpdateUserProfileController.UpdateUserProfileRequest request);
 
-    UserProfile suspendUserProfile(UUID id);
+    UserProfileModel suspendUserProfile(UUID id);
 
-    UserProfile createUserProfile(CreateUserProfileController.CreateUserProfileRequest request);
+    UserProfileModel createUserProfile(CreateUserProfileController.CreateUserProfileRequest request);
 }
 
-class UserProfileRepositoryImpl implements UserProfileRepositoryCustom {
+class UserProfileImpl implements UserProfileCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
 
     private final ModelMapper modelMapper;
-    private final UserProfileRepository userProfiles;
+    private final UserProfile userProfiles;
 
-    UserProfileRepositoryImpl(
+    UserProfileImpl(
             ModelMapper modelMapper,
-            @Lazy UserProfileRepository userProfiles) {
+            @Lazy UserProfile userProfiles) {
         this.modelMapper = modelMapper;
         this.userProfiles = userProfiles;
     }
 
     @Override
-    public UserProfile updateUserProfile(UUID id, UpdateUserProfileController.UpdateUserProfileRequest request) {
-        UserProfile userProfile = entityManager.find(UserProfile.class, id);
+    public UserProfileModel updateUserProfile(UUID id, UpdateUserProfileController.UpdateUserProfileRequest request) {
+        UserProfileModel userProfile = entityManager.find(UserProfileModel.class, id);
         if (userProfile == null) {
             throw new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found");
         }
@@ -68,8 +67,8 @@ class UserProfileRepositoryImpl implements UserProfileRepositoryCustom {
     }
 
     @Override
-    public UserProfile suspendUserProfile(UUID id) {
-        UserProfile userProfile = entityManager.find(UserProfile.class, id);
+    public UserProfileModel suspendUserProfile(UUID id) {
+        UserProfileModel userProfile = entityManager.find(UserProfileModel.class, id);
         if (userProfile == null) {
             throw new UserProfileException(HttpStatus.NOT_FOUND, "User profile not found");
         }
@@ -79,8 +78,8 @@ class UserProfileRepositoryImpl implements UserProfileRepositoryCustom {
     }
 
     @Override
-    public UserProfile createUserProfile(CreateUserProfileController.CreateUserProfileRequest request) {
-        UserProfile userProfile = modelMapper.map(request, UserProfile.class);
+    public UserProfileModel createUserProfile(CreateUserProfileController.CreateUserProfileRequest request) {
+        UserProfileModel userProfile = modelMapper.map(request, UserProfileModel.class);
         return userProfiles.save(userProfile);
     }
 }

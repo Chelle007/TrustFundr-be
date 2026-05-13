@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.model.dto.PlatformReportDonationRowDto;
-import com.example.trustfundr_be.repository.DonationRepository;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.repository.Donation;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,8 +33,8 @@ public class GenerateDailyReportController {
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
     private static final int REPORT_DETAIL_LIMIT = 25;
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
-    private final DonationRepository donationRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
+    private final Donation donationRepository;
 
     @Data
     @NoArgsConstructor
@@ -71,7 +71,7 @@ public class GenerateDailyReportController {
         long totalViews = fundraisingActivityRepository.sumViewCountCreatedBetween(startAt, endAt);
         long totalFavourites = fundraisingActivityRepository.sumFavouriteCountCreatedBetween(startAt, endAt);
 
-        // Donation aggregates
+        // DonationModel aggregates
         long donationCount = donationRepository.countDonationsBetween(startAt, endAt);
         BigDecimal donationAmount = donationRepository.sumDonationAmountBetween(startAt, endAt);
 

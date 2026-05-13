@@ -14,33 +14,32 @@ import org.springframework.http.HttpStatus;
 import com.example.trustfundr_be.controller.CreateFundraisingCategoryController;
 import com.example.trustfundr_be.controller.UpdateFundraisingCategoryController;
 import com.example.trustfundr_be.exception.FundraisingCategoryException;
-import com.example.trustfundr_be.model.FundraisingCategory;
+import com.example.trustfundr_be.model.FundraisingCategoryModel;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
-public interface FundraisingCategoryRepository
-        extends JpaRepository<FundraisingCategory, UUID>, FundraisingCategoryRepositoryCustom {
+public interface FundraisingCategory extends JpaRepository<FundraisingCategoryModel, UUID>, FundraisingCategoryCustom {
 
-    Optional<FundraisingCategory> findByNameIgnoreCase(String name);
+    Optional<FundraisingCategoryModel> findByNameIgnoreCase(String name);
 
-    @Query("SELECT c FROM FundraisingCategory c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+    @Query("SELECT c FROM FundraisingCategoryModel c WHERE LOWER(c.name) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(c.description IS NOT NULL AND LOWER(c.description) LIKE LOWER(CONCAT('%', :q, '%')))")
-    List<FundraisingCategory> searchByKeyword(@Param("q") String q, Sort sort);
+    List<FundraisingCategoryModel> searchByKeyword(@Param("q") String q, Sort sort);
 }
 
-interface FundraisingCategoryRepositoryCustom {
+interface FundraisingCategoryCustom {
 
-    FundraisingCategory createFundraisingCategory(CreateFundraisingCategoryController.CreateFundraisingCategoryRequest request);
+    FundraisingCategoryModel createFundraisingCategory(CreateFundraisingCategoryController.CreateFundraisingCategoryRequest request);
 
-    FundraisingCategory updateFundraisingCategory(UUID id, UpdateFundraisingCategoryController.UpdateFundraisingCategoryRequest request);
+    FundraisingCategoryModel updateFundraisingCategory(UUID id, UpdateFundraisingCategoryController.UpdateFundraisingCategoryRequest request);
 
-    FundraisingCategory suspendFundraisingCategory(UUID id);
+    FundraisingCategoryModel suspendFundraisingCategory(UUID id);
 }
 
 @RequiredArgsConstructor
-class FundraisingCategoryRepositoryImpl implements FundraisingCategoryRepositoryCustom {
+class FundraisingCategoryImpl implements FundraisingCategoryCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
@@ -48,23 +47,23 @@ class FundraisingCategoryRepositoryImpl implements FundraisingCategoryRepository
     private final ModelMapper modelMapper;
 
     @Override
-    public FundraisingCategory createFundraisingCategory(CreateFundraisingCategoryController.CreateFundraisingCategoryRequest request) {
-        Optional<FundraisingCategory> existing = findByNameIgnoreCase(request.getName());
+    public FundraisingCategoryModel createFundraisingCategory(CreateFundraisingCategoryController.CreateFundraisingCategoryRequest request) {
+        Optional<FundraisingCategoryModel> existing = findByNameIgnoreCase(request.getName());
         if (existing.isPresent()) {
             throw new FundraisingCategoryException(HttpStatus.BAD_REQUEST,
                     "Fundraising category already exists");
         }
 
-        FundraisingCategory entity = modelMapper.map(request, FundraisingCategory.class);
+        FundraisingCategoryModel entity = modelMapper.map(request, FundraisingCategoryModel.class);
         entityManager.persist(entity);
         entityManager.flush();
         return entity;
     }
 
     @Override
-    public FundraisingCategory updateFundraisingCategory(UUID id,
+    public FundraisingCategoryModel updateFundraisingCategory(UUID id,
             UpdateFundraisingCategoryController.UpdateFundraisingCategoryRequest request) {
-        FundraisingCategory entity = entityManager.find(FundraisingCategory.class, id);
+        FundraisingCategoryModel entity = entityManager.find(FundraisingCategoryModel.class, id);
         if (entity == null || entity.isDeleted()) {
             throw new FundraisingCategoryException(HttpStatus.NOT_FOUND, "Fundraising category not found");
         }
@@ -74,8 +73,8 @@ class FundraisingCategoryRepositoryImpl implements FundraisingCategoryRepository
     }
 
     @Override
-    public FundraisingCategory suspendFundraisingCategory(UUID id) {
-        FundraisingCategory entity = entityManager.find(FundraisingCategory.class, id);
+    public FundraisingCategoryModel suspendFundraisingCategory(UUID id) {
+        FundraisingCategoryModel entity = entityManager.find(FundraisingCategoryModel.class, id);
         if (entity == null) {
             throw new FundraisingCategoryException(HttpStatus.NOT_FOUND, "Fundraising category not found");
         }
@@ -84,10 +83,10 @@ class FundraisingCategoryRepositoryImpl implements FundraisingCategoryRepository
         return entity;
     }
 
-    private Optional<FundraisingCategory> findByNameIgnoreCase(String name) {
-        List<FundraisingCategory> results = entityManager
-                .createQuery("SELECT c FROM FundraisingCategory c WHERE LOWER(c.name) = LOWER(:name)",
-                        FundraisingCategory.class)
+    private Optional<FundraisingCategoryModel> findByNameIgnoreCase(String name) {
+        List<FundraisingCategoryModel> results = entityManager
+                .createQuery("SELECT c FROM FundraisingCategoryModel c WHERE LOWER(c.name) = LOWER(:name)",
+                        FundraisingCategoryModel.class)
                 .setParameter("name", name)
                 .getResultList();
         if (results.isEmpty()) {
@@ -96,4 +95,3 @@ class FundraisingCategoryRepositoryImpl implements FundraisingCategoryRepository
         return Optional.of(results.get(0));
     }
 }
-

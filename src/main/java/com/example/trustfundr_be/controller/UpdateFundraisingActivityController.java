@@ -15,8 +15,8 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -36,7 +36,7 @@ public class UpdateFundraisingActivityController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -91,7 +91,7 @@ public class UpdateFundraisingActivityController {
             @AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID id,
             @Valid @RequestBody UpdateFundraisingActivityRequest request) {
         // Update fundraising activity
-        FundraisingActivity saved = fundraisingActivityRepository.updateFundraisingActivity(userDetails.getUsername(),
+        FundraisingActivityModel saved = fundraisingActivityRepository.updateFundraisingActivity(userDetails.getUsername(),
                 id, request);
 
         // Map saved fundraising activity to response

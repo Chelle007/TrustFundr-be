@@ -17,15 +17,15 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class Donation extends BaseModel {
+public class DonationModel extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donor_account_id", nullable = false)
-    private UserAccount donor;
+    private UserAccountModel donor;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fundraising_activity_id", nullable = false)
-    private FundraisingActivity fundraisingActivity;
+    private FundraisingActivityModel fundraisingActivity;
 
     @Column(nullable = false, precision = 19, scale = 2)
     private BigDecimal amount;

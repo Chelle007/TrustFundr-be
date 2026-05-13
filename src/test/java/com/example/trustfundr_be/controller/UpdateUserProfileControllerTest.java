@@ -19,20 +19,20 @@ import org.modelmapper.ModelMapper;
 import org.springframework.http.HttpStatus;
 
 import com.example.trustfundr_be.exception.UserProfileException;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserProfile;
 
 @ExtendWith(MockitoExtension.class)
 public class UpdateUserProfileControllerTest {
 
     @Mock
-    private UserProfileRepository userProfileRepository;
+    private UserProfile userProfileRepository;
 
     @Mock
     private ModelMapper modelMapper;
 
     @Mock
-    private UserProfile userProfile;
+    private UserProfileModel userProfile;
 
     @Test
     void updateUserProfile_success() {

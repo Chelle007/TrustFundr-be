@@ -9,7 +9,7 @@ import org.springframework.context.annotation.PropertySource;
 import org.springframework.data.jpa.repository.config.EnableJpaAuditing;
 
 import com.example.trustfundr_be.controller.CreateUserAccountController;
-import com.example.trustfundr_be.model.UserAccount;
+import com.example.trustfundr_be.model.UserAccountModel;
 
 @SpringBootApplication
 @EnableJpaAuditing
@@ -24,16 +24,16 @@ public class TrustfundrBeApplication {
     @Bean
     public ModelMapper modelMapper() {
         ModelMapper mapper = new ModelMapper();
-        TypeMap<CreateUserAccountController.CreateUserAccountRequest, UserAccount> accountCreate =
+        TypeMap<CreateUserAccountController.CreateUserAccountRequest, UserAccountModel> accountCreate =
                 mapper.createTypeMap(
                         CreateUserAccountController.CreateUserAccountRequest.class,
-                        UserAccount.class);
+                        UserAccountModel.class);
         accountCreate.addMappings(m -> {
-            m.skip(UserAccount::setId);
-            m.skip(UserAccount::setPasswordHashString);
-            m.skip(UserAccount::setCreatedAt);
-            m.skip(UserAccount::setUpdatedAt);
-            m.skip(UserAccount::setDeletedAt);
+            m.skip(UserAccountModel::setId);
+            m.skip(UserAccountModel::setPasswordHashString);
+            m.skip(UserAccountModel::setCreatedAt);
+            m.skip(UserAccountModel::setUpdatedAt);
+            m.skip(UserAccountModel::setDeletedAt);
         });
         return mapper;
     }

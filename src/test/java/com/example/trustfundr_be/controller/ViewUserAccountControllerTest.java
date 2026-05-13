@@ -15,24 +15,24 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 @ExtendWith(MockitoExtension.class)
 class ViewUserAccountControllerTest {
 
     @Mock
-    private UserAccountRepository userAccountRepository;
+    private UserAccount userAccountRepository;
 
     @Mock
     private ModelMapper modelMapper;
 
     @Mock
-    private UserAccount userAccount;
+    private UserAccountModel userAccount;
 
     @Mock
-    private UserProfile userProfile;
+    private UserProfileModel userProfile;
 
     @Test
     void viewUserAccounts_success() {

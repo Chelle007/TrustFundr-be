@@ -17,7 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.model.dto.DoneeFundraisingActivitySummary;
-import com.example.trustfundr_be.repository.DonationRepository;
+import com.example.trustfundr_be.repository.Donation;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -35,7 +35,7 @@ public class SearchMyDonationsDoneeController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final DonationRepository donationRepository;
+    private final Donation donationRepository;
     private final ModelMapper modelMapper;
 
     @Data

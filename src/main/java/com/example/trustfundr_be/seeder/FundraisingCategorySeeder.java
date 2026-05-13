@@ -4,8 +4,8 @@ import java.util.Locale;
 
 import org.springframework.stereotype.Service;
 
-import com.example.trustfundr_be.model.FundraisingCategory;
-import com.example.trustfundr_be.repository.FundraisingCategoryRepository;
+import com.example.trustfundr_be.model.FundraisingCategoryModel;
+import com.example.trustfundr_be.repository.FundraisingCategory;
 
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
@@ -16,7 +16,7 @@ public class FundraisingCategorySeeder {
 
     private static final int TARGET_COUNT = 100;
 
-    private final FundraisingCategoryRepository fundraisingCategoryRepository;
+    private final FundraisingCategory fundraisingCategoryRepository;
     private final Faker faker;
 
     public void seedFundraisingCategories() {
@@ -27,7 +27,7 @@ public class FundraisingCategorySeeder {
 
         int remaining = (int) (TARGET_COUNT - current);
         for (int i = 0; i < remaining; i++) {
-            FundraisingCategory c = new FundraisingCategory();
+            FundraisingCategoryModel c = new FundraisingCategoryModel();
             c.setName(generateUniqueName());
             c.setDescription(faker.lorem().sentence(12, 6));
             fundraisingCategoryRepository.save(c);

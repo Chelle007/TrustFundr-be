@@ -10,8 +10,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserProfile;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -27,7 +27,7 @@ public class SuspendUserProfileController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final UserProfileRepository userProfileRepository;
+    private final UserProfile userProfileRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -44,7 +44,7 @@ public class SuspendUserProfileController {
     @Transactional
     public SuspendUserProfileResponse suspendUserProfile(@PathVariable UUID id) {
         // Suspend user profile
-        UserProfile saved = userProfileRepository.suspendUserProfile(id);
+        UserProfileModel saved = userProfileRepository.suspendUserProfile(id);
 
         // Map saved user profile to response
         return modelMapper.map(saved, SuspendUserProfileResponse.class);

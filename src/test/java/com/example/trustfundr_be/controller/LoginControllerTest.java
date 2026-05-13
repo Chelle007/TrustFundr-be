@@ -19,8 +19,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 
 import com.example.trustfundr_be.app.security.JwtService;
 import com.example.trustfundr_be.exception.AuthException;
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import jakarta.servlet.http.HttpServletRequest;
 
@@ -28,7 +28,7 @@ import jakarta.servlet.http.HttpServletRequest;
 class LoginControllerTest {
 
     @Mock
-    private UserAccountRepository userAccountRepository;
+    private UserAccount userAccountRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -44,7 +44,7 @@ class LoginControllerTest {
         String username = "admin";
         UUID userId = UUID.randomUUID();
 
-        UserAccount entity = new UserAccount();
+        UserAccountModel entity = new UserAccountModel();
         entity.setId(userId);
         entity.setUsername(username);
         entity.setFullName("Test User");

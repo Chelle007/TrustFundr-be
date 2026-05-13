@@ -16,13 +16,13 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FundraisingActivityFavourite extends BaseModel {
+public class FundraisingActivityFavouriteModel extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "donee_account_id", nullable = false)
-    private UserAccount donee;
+    private UserAccountModel donee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fundraising_activity_id", nullable = false)
-    private FundraisingActivity fundraisingActivity;
+    private FundraisingActivityModel fundraisingActivity;
 }

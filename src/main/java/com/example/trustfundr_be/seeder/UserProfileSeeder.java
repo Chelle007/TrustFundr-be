@@ -3,8 +3,8 @@ package com.example.trustfundr_be.seeder;
 import java.util.List;
 
 import org.springframework.stereotype.Service;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserProfile;
 
 import lombok.RequiredArgsConstructor;
 
@@ -12,7 +12,7 @@ import lombok.RequiredArgsConstructor;
 @Service
 public class UserProfileSeeder {
 
-    private final UserProfileRepository userProfileRepository;
+    private final UserProfile userProfileRepository;
 
     private record ProfileSeed(String name, String description) {
     }
@@ -30,7 +30,7 @@ public class UserProfileSeeder {
         for (ProfileSeed seed : DEFAULT_PROFILES) {
             userProfileRepository.findByName(seed.name()).orElseGet(() -> {
 
-                UserProfile userProfile = new UserProfile();
+                UserProfileModel userProfile = new UserProfileModel();
                 userProfile.setName(seed.name());
                 userProfile.setDescription(seed.description());
 

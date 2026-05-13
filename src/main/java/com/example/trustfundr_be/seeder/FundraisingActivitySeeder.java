@@ -11,10 +11,10 @@ import java.util.concurrent.ThreadLocalRandom;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.FundraisingActivity;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
@@ -25,21 +25,21 @@ public class FundraisingActivitySeeder {
 
     private static final int TARGET_COUNT = 100;
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
-    private final UserAccountRepository userAccountRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
+    private final UserAccount userAccountRepository;
     private final Faker faker;
 
     public void seedFundraisingActivities() {
         long current = fundraisingActivityRepository.count();
         if (current < 10) {
-            List<UserAccount> owners = new ArrayList<>(userAccountRepository.findAll());
+            List<UserAccountModel> owners = new ArrayList<>(userAccountRepository.findAll());
             if (owners.isEmpty()) {
                 throw new IllegalStateException("No user accounts found; cannot seed fundraising activities");
             }
 
             int remaining = (int) (TARGET_COUNT - current);
             for (int i = 0; i < remaining; i++) {
-                FundraisingActivity act = new FundraisingActivity();
+                FundraisingActivityModel act = new FundraisingActivityModel();
                 act.setTitle(faker.book().title());
                 act.setDescription(faker.lorem().paragraph(4));
                 act.setCategory(faker.options().option("Medical", "Education", "Community", "Environment"));
@@ -77,7 +77,7 @@ public class FundraisingActivitySeeder {
             if (page.isEmpty()) {
                 break;
             }
-            for (FundraisingActivity a : page.getContent()) {
+            for (FundraisingActivityModel a : page.getContent()) {
                 String seed = a.getId().toString().replace("-", "");
                 String key = (seed + "aaaaaaaaaaaa").substring(0, 12);
                 a.setImageUrl("https://picsum.photos/seed/tf" + key + "/800/520");

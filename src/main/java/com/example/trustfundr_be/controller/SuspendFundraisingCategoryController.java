@@ -10,7 +10,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.repository.FundraisingCategoryRepository;
+import com.example.trustfundr_be.repository.FundraisingCategory;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -26,7 +26,7 @@ public class SuspendFundraisingCategoryController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingCategoryRepository fundraisingCategoryRepository;
+    private final FundraisingCategory fundraisingCategoryRepository;
     private final ModelMapper modelMapper;
 
     @Data

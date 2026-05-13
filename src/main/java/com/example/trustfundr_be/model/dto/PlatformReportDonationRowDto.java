@@ -3,7 +3,7 @@ package com.example.trustfundr_be.model.dto;
 import java.math.BigDecimal;
 import java.time.Instant;
 
-import com.example.trustfundr_be.model.Donation;
+import com.example.trustfundr_be.model.DonationModel;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -16,7 +16,7 @@ public class PlatformReportDonationRowDto {
     private BigDecimal amount;
     private Instant donatedAt;
 
-    public static PlatformReportDonationRowDto fromEntity(Donation d) {
+    public static PlatformReportDonationRowDto fromEntity(DonationModel d) {
         PlatformReportDonationRowDto row = new PlatformReportDonationRowDto();
         row.setFundraisingActivityTitle(
                 d.getFundraisingActivity() != null ? d.getFundraisingActivity().getTitle() : "—");

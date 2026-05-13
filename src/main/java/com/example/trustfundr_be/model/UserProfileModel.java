@@ -8,16 +8,16 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 @Entity
-@Table(name = "fundraising_categories")
+@Table(name = "user_profiles")
 @Getter
 @Setter
 @NoArgsConstructor
-public class FundraisingCategory extends BaseModel {
+public class UserProfileModel extends BaseModel {
 
-    @Column(nullable = false, length = 255)
-    private String name;
+	@Column(nullable = false, unique = true)
+	private String name;
 
-    @Column(length = 2000)
-    private String description;
+	@Column(length = 2000)
+	private String description;
+
 }
-

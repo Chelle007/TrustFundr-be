@@ -14,15 +14,15 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.modelmapper.ModelMapper;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 @ExtendWith(MockitoExtension.class)
 class CreateUserAccountControllerTest {
 
     @Mock
-    private UserAccountRepository userAccountRepository;
+    private UserAccount userAccountRepository;
 
     @Mock
     private ModelMapper modelMapper;
@@ -32,11 +32,11 @@ class CreateUserAccountControllerTest {
         UUID accountId = UUID.randomUUID();
         UUID profileId = UUID.randomUUID();
 
-        UserProfile profile = new UserProfile();
+        UserProfileModel profile = new UserProfileModel();
         profile.setId(profileId);
         profile.setName("Donee");
 
-        UserAccount saved = new UserAccount();
+        UserAccountModel saved = new UserAccountModel();
         saved.setId(accountId);
         saved.setFullName("New User");
         saved.setUsername("newuser");
@@ -45,9 +45,9 @@ class CreateUserAccountControllerTest {
         when(userAccountRepository.createUserAccount(any(CreateUserAccountController.CreateUserAccountRequest.class)))
                 .thenReturn(saved);
 
-        when(modelMapper.map(any(UserAccount.class), eq(CreateUserAccountController.CreateUserAccountResponse.class)))
+        when(modelMapper.map(any(UserAccountModel.class), eq(CreateUserAccountController.CreateUserAccountResponse.class)))
                 .thenAnswer(invocation -> {
-                    UserAccount acc = invocation.getArgument(0);
+                    UserAccountModel acc = invocation.getArgument(0);
                     CreateUserAccountController.CreateUserAccountResponse r =
                             new CreateUserAccountController.CreateUserAccountResponse();
                     r.setId(acc.getId());

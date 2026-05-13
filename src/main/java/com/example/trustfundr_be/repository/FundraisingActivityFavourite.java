@@ -11,50 +11,50 @@ import org.springframework.http.HttpStatus;
 
 import com.example.trustfundr_be.exception.FundraisingActivityException;
 import com.example.trustfundr_be.exception.UserAccountException;
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.model.FundraisingActivityFavourite;
-import com.example.trustfundr_be.model.UserAccount;
+import com.example.trustfundr_be.model.FundraisingActivityFavouriteModel;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.UserAccountModel;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
 import lombok.RequiredArgsConstructor;
 
-public interface FundraisingActivityFavouriteRepository
-        extends JpaRepository<FundraisingActivityFavourite, UUID>, FundraisingActivityFavouriteRepositoryCustom {
+public interface FundraisingActivityFavourite
+        extends JpaRepository<FundraisingActivityFavouriteModel, UUID>, FundraisingActivityFavouriteCustom {
 
-    @Query("SELECT fav FROM FundraisingActivityFavourite fav JOIN FETCH fav.fundraisingActivity act "
+    @Query("SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN FETCH fav.fundraisingActivity act "
             + "WHERE fav.donee.username = :username ORDER BY fav.createdAt DESC")
-    List<FundraisingActivityFavourite> findAllByDoneeUsernameOrderByCreatedAtDesc(@Param("username") String username);
+    List<FundraisingActivityFavouriteModel> findAllByDoneeUsernameOrderByCreatedAtDesc(@Param("username") String username);
 
-    @Query("SELECT fav FROM FundraisingActivityFavourite fav JOIN FETCH fav.fundraisingActivity act "
+    @Query("SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN FETCH fav.fundraisingActivity act "
             + "WHERE fav.donee.username = :username AND ("
             + "LOWER(act.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(act.description IS NOT NULL AND LOWER(act.description) LIKE LOWER(CONCAT('%', :q, '%')))) "
             + "ORDER BY fav.createdAt DESC")
-    List<FundraisingActivityFavourite> searchByDoneeUsername(@Param("username") String username, @Param("q") String q);
+    List<FundraisingActivityFavouriteModel> searchByDoneeUsername(@Param("username") String username, @Param("q") String q);
 }
 
-interface FundraisingActivityFavouriteRepositoryCustom {
+interface FundraisingActivityFavouriteCustom {
 
-    FundraisingActivityFavourite saveFavourite(String doneeUsername, UUID activityId);
+    FundraisingActivityFavouriteModel saveFavourite(String doneeUsername, UUID activityId);
 }
 
 @RequiredArgsConstructor
-class FundraisingActivityFavouriteRepositoryImpl implements FundraisingActivityFavouriteRepositoryCustom {
+class FundraisingActivityFavouriteImpl implements FundraisingActivityFavouriteCustom {
 
     @PersistenceContext
     private EntityManager entityManager;
 
-    private final UserAccountRepository userAccountRepository;
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final UserAccount userAccountRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
 
     @Override
-    public FundraisingActivityFavourite saveFavourite(String doneeUsername, UUID activityId) {
-        Optional<FundraisingActivityFavourite> existing = entityManager
+    public FundraisingActivityFavouriteModel saveFavourite(String doneeUsername, UUID activityId) {
+        Optional<FundraisingActivityFavouriteModel> existing = entityManager
                 .createQuery(
-                        "SELECT fav FROM FundraisingActivityFavourite fav JOIN fav.donee d "
+                        "SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN fav.donee d "
                                 + "JOIN fav.fundraisingActivity a WHERE d.username = :username AND a.id = :activityId",
-                        FundraisingActivityFavourite.class)
+                        FundraisingActivityFavouriteModel.class)
                 .setParameter("username", doneeUsername)
                 .setParameter("activityId", activityId)
                 .getResultStream()
@@ -62,11 +62,11 @@ class FundraisingActivityFavouriteRepositoryImpl implements FundraisingActivityF
         if (existing.isPresent()) {
             return existing.get();
         }
-        UserAccount donee = userAccountRepository.findByUsername(doneeUsername)
+        UserAccountModel donee = userAccountRepository.findByUsername(doneeUsername)
                 .orElseThrow(() -> new UserAccountException(HttpStatus.NOT_FOUND, "User account not found"));
-        FundraisingActivity activity = fundraisingActivityRepository.findById(activityId)
+        FundraisingActivityModel activity = fundraisingActivityRepository.findById(activityId)
                 .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND, "Fundraising activity not found"));
-        FundraisingActivityFavourite row = new FundraisingActivityFavourite();
+        FundraisingActivityFavouriteModel row = new FundraisingActivityFavouriteModel();
         row.setDonee(donee);
         row.setFundraisingActivity(activity);
         entityManager.persist(row);

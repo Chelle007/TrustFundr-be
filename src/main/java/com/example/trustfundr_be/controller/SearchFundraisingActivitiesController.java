@@ -20,8 +20,8 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 import org.springframework.web.server.ResponseStatusException;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -42,7 +42,7 @@ public class SearchFundraisingActivitiesController {
     private static final String STATUS_ACTIVE = "active";
     private static final String STATUS_COMPLETED = "completed";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -80,7 +80,7 @@ public class SearchFundraisingActivitiesController {
         String username = userDetails.getUsername();
         String query = q.trim();
 
-        Stream<FundraisingActivity> activityStream;
+        Stream<FundraisingActivityModel> activityStream;
         if (STATUS_COMPLETED.equals(s)) {
             activityStream = fundraisingActivityRepository.searchCompletedForOwner(username, query).stream();
         } else if (STATUS_ACTIVE.equals(s)) {

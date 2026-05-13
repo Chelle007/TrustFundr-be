@@ -12,8 +12,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ public class SearchUserAccountController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final UserAccountRepository userAccountRepository;
+    private final UserAccount userAccountRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -56,7 +56,7 @@ public class SearchUserAccountController {
     }
 
     // Map user account to response
-    private SearchUserAccountResponse toResponse(UserAccount account) {
+    private SearchUserAccountResponse toResponse(UserAccountModel account) {
         SearchUserAccountResponse response = modelMapper.map(account, SearchUserAccountResponse.class);
         if (account.getUserProfile() != null) {
             response.setUserProfileId(account.getUserProfile().getId());

@@ -19,7 +19,7 @@ import lombok.Setter;
 @Getter
 @Setter
 @NoArgsConstructor
-public class FundraisingActivity extends BaseModel {
+public class FundraisingActivityModel extends BaseModel {
 
     @Column(nullable = false, length = 255)
     private String title;
@@ -53,7 +53,7 @@ public class FundraisingActivity extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "owner_account_id", nullable = false)
-    private UserAccount owner;
+    private UserAccountModel owner;
 
     @PostLoad
     private void normalizeAmountsAfterLoad() {

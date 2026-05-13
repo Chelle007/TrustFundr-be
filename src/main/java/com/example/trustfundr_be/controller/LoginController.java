@@ -19,8 +19,8 @@ import jakarta.validation.constraints.NotBlank;
 
 import com.example.trustfundr_be.app.security.JwtService;
 import com.example.trustfundr_be.exception.AuthException;
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.repository.UserAccountRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.repository.UserAccount;
 
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -32,7 +32,7 @@ import lombok.RequiredArgsConstructor;
 @RequestMapping("/api/auth")
 public class LoginController {
 
-    private final UserAccountRepository userAccountRepository;
+    private final UserAccount userAccountRepository;
     private final ModelMapper modelMapper;
     private final JwtService jwtService;
 
@@ -60,7 +60,7 @@ public class LoginController {
     @PostMapping("/login")
     public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         // Fetch user account through repository
-        UserAccount userAccount = userAccountRepository
+        UserAccountModel userAccount = userAccountRepository
                 .findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword())
                 .orElseThrow(() -> new AuthException("Invalid username or password"));
 
@@ -70,8 +70,8 @@ public class LoginController {
         return response;
     }
 
-    // Map to UserDetails (UserAccount's username and password + UserProfile's role)
-    private static UserDetails toUserDetails(UserAccount account) {
+    // Map to UserDetails (UserAccountModel's username and password + UserProfileModel's role)
+    private static UserDetails toUserDetails(UserAccountModel account) {
         String role = "USER";
         if (account.getUserProfile() != null) {
             String profileName = account.getUserProfile().getName();

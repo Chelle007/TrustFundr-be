@@ -8,10 +8,10 @@ import java.util.Optional;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
-import com.example.trustfundr_be.model.UserAccount;
-import com.example.trustfundr_be.model.UserProfile;
-import com.example.trustfundr_be.repository.UserAccountRepository;
-import com.example.trustfundr_be.repository.UserProfileRepository;
+import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.model.UserProfileModel;
+import com.example.trustfundr_be.repository.UserAccount;
+import com.example.trustfundr_be.repository.UserProfile;
 
 import lombok.RequiredArgsConstructor;
 import net.datafaker.Faker;
@@ -22,8 +22,8 @@ public class UserAccountSeeder {
 
     private static final int TARGET_COUNT = 100;
 
-    private final UserAccountRepository userAccountRepository;
-    private final UserProfileRepository userProfileRepository;
+    private final UserAccount userAccountRepository;
+    private final UserProfile userProfileRepository;
     private final PasswordEncoder passwordEncoder;
     private final Faker faker;
 
@@ -57,7 +57,7 @@ public class UserAccountSeeder {
     private void ensureRequiredProfilesExist() {
         for (ProfileSeed seed : REQUIRED_PROFILES) {
             userProfileRepository.findByNameIgnoreCase(seed.name()).orElseGet(() -> {
-                UserProfile profile = new UserProfile();
+                UserProfileModel profile = new UserProfileModel();
                 profile.setName(seed.name());
                 profile.setDescription(seed.description());
                 return userProfileRepository.save(profile);
@@ -68,11 +68,11 @@ public class UserAccountSeeder {
     private void seedDefaultAccounts() {
         for (AccountSeed seed : DEFAULT_ACCOUNTS) {
             userAccountRepository.findByUsernameIgnoreCase(seed.username()).orElseGet(() -> {
-                UserProfile userProfile = userProfileRepository.findByNameIgnoreCase(seed.profileName())
+                UserProfileModel userProfile = userProfileRepository.findByNameIgnoreCase(seed.profileName())
                         .orElseThrow(() -> new IllegalStateException(
                                 "User profile \"" + seed.profileName() + "\" must exist before seeding accounts"));
 
-                UserAccount userAccount = new UserAccount();
+                UserAccountModel userAccount = new UserAccountModel();
                 userAccount.setFullName(seed.fullName());
                 userAccount.setUsername(seed.username());
                 userAccount.setPasswordHashString(passwordEncoder.encode(seed.plainPassword()));
@@ -89,14 +89,14 @@ public class UserAccountSeeder {
             return;
         }
 
-        List<UserProfile> profiles = new ArrayList<>(userProfileRepository.findAll());
+        List<UserProfileModel> profiles = new ArrayList<>(userProfileRepository.findAll());
         if (profiles.isEmpty()) {
             throw new IllegalStateException("No user profiles found; cannot seed user accounts");
         }
 
         int remaining = (int) (TARGET_COUNT - current);
         for (int i = 0; i < remaining; i++) {
-            UserAccount account = new UserAccount();
+            UserAccountModel account = new UserAccountModel();
             account.setFullName(faker.name().fullName());
             account.setUsername(generateUniqueUsername());
             account.setPasswordHashString(passwordEncoder.encode("password123"));
@@ -114,7 +114,7 @@ public class UserAccountSeeder {
             if (candidate.isBlank()) {
                 continue;
             }
-            Optional<UserAccount> existing = userAccountRepository.findByUsernameIgnoreCase(candidate);
+            Optional<UserAccountModel> existing = userAccountRepository.findByUsernameIgnoreCase(candidate);
             if (existing.isEmpty()) {
                 return candidate;
             }

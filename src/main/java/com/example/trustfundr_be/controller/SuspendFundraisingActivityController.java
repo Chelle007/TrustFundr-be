@@ -14,8 +14,8 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -31,7 +31,7 @@ public class SuspendFundraisingActivityController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -59,7 +59,7 @@ public class SuspendFundraisingActivityController {
     public SuspendFundraisingActivityResponse suspendFundraisingActivity(
             @AuthenticationPrincipal UserDetails userDetails, @PathVariable UUID id) {
         // Suspend fundraising activity (soft delete, same pattern as user account suspend)
-        FundraisingActivity saved = fundraisingActivityRepository.suspendFundraisingActivity(userDetails.getUsername(),
+        FundraisingActivityModel saved = fundraisingActivityRepository.suspendFundraisingActivity(userDetails.getUsername(),
                 id);
 
         // Map saved fundraising activity to response

@@ -16,8 +16,8 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.exception.FundraisingActivityException;
-import com.example.trustfundr_be.model.FundraisingActivity;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -33,7 +33,7 @@ public class ViewFundraisingActivityController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -61,7 +61,7 @@ public class ViewFundraisingActivityController {
     public ViewFundraisingActivityResponse viewFundraisingActivity(@AuthenticationPrincipal UserDetails userDetails,
             @PathVariable UUID id) {
         // Load activity only if it belongs to the authenticated fundraiser
-        FundraisingActivity activity = fundraisingActivityRepository
+        FundraisingActivityModel activity = fundraisingActivityRepository
                 .findByIdAndOwnerUsername(id, userDetails.getUsername())
                 .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND,
                         "Fundraising activity not found"));

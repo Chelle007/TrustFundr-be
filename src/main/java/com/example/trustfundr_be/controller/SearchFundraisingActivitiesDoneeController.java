@@ -16,9 +16,9 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.trustfundr_be.model.FundraisingActivity;
+import com.example.trustfundr_be.model.FundraisingActivityModel;
 import com.example.trustfundr_be.model.dto.PageResponse;
-import com.example.trustfundr_be.repository.FundraisingActivityRepository;
+import com.example.trustfundr_be.repository.FundraisingActivity;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
 import io.swagger.v3.oas.annotations.tags.Tag;
@@ -38,7 +38,7 @@ public class SearchFundraisingActivitiesDoneeController {
 
     private static final String BEARER_AUTH_SCHEME = "bearerAuth";
 
-    private final FundraisingActivityRepository fundraisingActivityRepository;
+    private final FundraisingActivity fundraisingActivityRepository;
     private final ModelMapper modelMapper;
 
     @Data
@@ -65,7 +65,7 @@ public class SearchFundraisingActivitiesDoneeController {
             @RequestParam(defaultValue = "0") @Min(0) int page,
             @RequestParam(defaultValue = "12") @Min(1) @Max(50) int size) {
         Pageable pageable = PageRequest.of(page, size);
-        Page<FundraisingActivity> result =
+        Page<FundraisingActivityModel> result =
                 fundraisingActivityRepository.searchAllPublicPage(q.trim(), pageable);
         return new PageResponse<>(
                 result.getContent().stream()
