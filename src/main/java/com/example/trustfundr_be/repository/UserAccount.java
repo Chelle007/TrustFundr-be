@@ -13,6 +13,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import com.example.trustfundr_be.controller.CreateUserAccountController;
+import com.example.trustfundr_be.controller.LoginController;
 import com.example.trustfundr_be.controller.UpdateUserAccountController;
 import com.example.trustfundr_be.exception.UserAccountException;
 import com.example.trustfundr_be.model.UserAccountModel;
@@ -41,7 +42,7 @@ public interface UserAccount extends JpaRepository<UserAccountModel, UUID>, User
 
 interface UserAccountCustom {
 
-    Optional<UserAccountModel> findByUsernameAndPassword(String username, String password);
+    Optional<UserAccountModel> login(LoginController.LoginRequest request);
 
     UserAccountModel updateUserAccount(UUID id, UpdateUserAccountController.UpdateUserAccountRequest request);
 
@@ -115,7 +116,9 @@ class UserAccountImpl implements UserAccountCustom {
     }
 
     @Override
-    public Optional<UserAccountModel> findByUsernameAndPassword(String username, String password) {
+    public Optional<UserAccountModel> login(LoginController.LoginRequest request) {
+        String username = request.getUsername();
+        String password = request.getPassword();
         List<UserAccountModel> results = entityManager
                 .createQuery(
                         "SELECT DISTINCT a FROM UserAccountModel a JOIN FETCH a.userProfile p WHERE a.username = :username",

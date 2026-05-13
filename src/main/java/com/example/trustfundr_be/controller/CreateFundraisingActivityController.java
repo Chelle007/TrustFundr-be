@@ -22,6 +22,7 @@ import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -49,8 +50,8 @@ public class CreateFundraisingActivityController {
         @Size(max = 5000)
         private String description;
 
-        @Size(max = 255)
-        private String category;
+        @NotNull(message = "Fundraising category id is required")
+        private UUID categoryId;
 
         @Size(max = 255)
         private String location;
@@ -73,6 +74,7 @@ public class CreateFundraisingActivityController {
         private UUID id;
         private String title;
         private String description;
+        private UUID categoryId;
         private String category;
         private String location;
         private BigDecimal goalAmount;

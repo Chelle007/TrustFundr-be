@@ -50,28 +50,28 @@ class ViewUserAccountControllerTest {
         when(userProfile.getName()).thenReturn(profileName);
 
         // Mock model mapper behavor
-        ViewUserAccountController.UserAccountResponse mockedResponse =
-                new ViewUserAccountController.UserAccountResponse();
-        when(modelMapper.map(eq(userAccount), eq(ViewUserAccountController.UserAccountResponse.class)))
+        ViewUserAccountController.ViewUserAccountResponse mockedResponse =
+                new ViewUserAccountController.ViewUserAccountResponse();
+        when(modelMapper.map(eq(userAccount), eq(ViewUserAccountController.ViewUserAccountResponse.class)))
                 .thenReturn(mockedResponse);
 
         // Create controller
         ViewUserAccountController controller = new ViewUserAccountController(userAccountRepository, modelMapper);
 
         // Invoke list method
-        List<ViewUserAccountController.UserAccountResponse> result = controller.listUserAccounts();
+        List<ViewUserAccountController.ViewUserAccountResponse> result = controller.listUserAccounts();
 
         // Assert response list
         assertNotNull(result, "Result list should be null");
         assertEquals(1, result.size(), "Result list should contain 1 account");
 
         // Assert that the mapping logic correctly extracted profile data
-        ViewUserAccountController.UserAccountResponse responseObj = result.get(0);
+        ViewUserAccountController.ViewUserAccountResponse responseObj = result.get(0);
         assertEquals(profileId, responseObj.getUserProfileId(), "Profile ID should match");
         assertEquals(profileName, responseObj.getUserProfileName(), "Profile Name should match");
 
         // Verify interactions
         verify(userAccountRepository).findAllWithUserProfileOrderByUsernameAsc();
-        verify(modelMapper).map(eq(userAccount), eq(ViewUserAccountController.UserAccountResponse.class));
+        verify(modelMapper).map(eq(userAccount), eq(ViewUserAccountController.ViewUserAccountResponse.class));
     }
 }

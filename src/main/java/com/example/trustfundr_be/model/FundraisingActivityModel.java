@@ -2,6 +2,7 @@ package com.example.trustfundr_be.model;
 
 import java.math.BigDecimal;
 import java.time.Instant;
+import java.util.UUID;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -27,8 +28,9 @@ public class FundraisingActivityModel extends BaseModel {
     @Column(length = 5000)
     private String description;
 
-    @Column(length = 255)
-    private String category;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "fundraising_category_id", nullable = false)
+    private FundraisingCategoryModel fundraisingCategory;
 
     @Column(length = 255)
     private String location;
@@ -60,5 +62,15 @@ public class FundraisingActivityModel extends BaseModel {
         if (currentAmount == null) {
             currentAmount = BigDecimal.ZERO;
         }
+    }
+
+    /** Category display name for JSON / ModelMapper (`category` field on API DTOs). */
+    public String getCategory() {
+        return fundraisingCategory == null ? null : fundraisingCategory.getName();
+    }
+
+    /** Category id for JSON / ModelMapper (`categoryId` on API DTOs). */
+    public UUID getCategoryId() {
+        return fundraisingCategory == null ? null : fundraisingCategory.getId();
     }
 }

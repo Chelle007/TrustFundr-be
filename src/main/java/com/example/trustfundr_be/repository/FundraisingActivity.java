@@ -6,7 +6,6 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
-import org.modelmapper.ModelMapper;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Sort;
@@ -20,6 +19,7 @@ import com.example.trustfundr_be.controller.CreateFundraisingActivityController;
 import com.example.trustfundr_be.controller.UpdateFundraisingActivityController;
 import com.example.trustfundr_be.exception.FundraisingActivityException;
 import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.FundraisingCategoryModel;
 import com.example.trustfundr_be.model.UserAccountModel;
 
 import jakarta.persistence.EntityManager;
@@ -42,7 +42,7 @@ public interface FundraisingActivity
     @Query("SELECT f FROM FundraisingActivityModel f WHERE f.owner.username = :ownerUsername AND f.completedAt IS NULL AND ("
             + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.fundraisingCategory IS NOT NULL AND LOWER(f.fundraisingCategory.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
             + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))))")
     List<FundraisingActivityModel> searchForOwner(@Param("ownerUsername") String ownerUsername, @Param("q") String q,
             Sort sort);
@@ -55,7 +55,7 @@ public interface FundraisingActivity
     @Query("SELECT f FROM FundraisingActivityModel f WHERE f.owner.username = :ownerUsername AND f.completedAt IS NOT NULL AND ("
             + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-            + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+            + "(f.fundraisingCategory IS NOT NULL AND LOWER(f.fundraisingCategory.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
             + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))) "
             + "ORDER BY f.completedAt DESC")
     List<FundraisingActivityModel> searchCompletedForOwner(@Param("ownerUsername") String ownerUsername, @Param("q") String q);
@@ -75,17 +75,17 @@ public interface FundraisingActivity
             value = "SELECT f FROM FundraisingActivityModel f WHERE "
                     + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
                     + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-                    + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.fundraisingCategory IS NOT NULL AND LOWER(f.fundraisingCategory.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
                     + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))) "
                     + "ORDER BY f.createdAt DESC",
             countQuery = "SELECT count(f) FROM FundraisingActivityModel f WHERE "
                     + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
                     + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
-                    + "(f.category IS NOT NULL AND LOWER(f.category) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "(f.fundraisingCategory IS NOT NULL AND LOWER(f.fundraisingCategory.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
                     + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))")
     Page<FundraisingActivityModel> searchAllPublicPage(@Param("q") String q, Pageable pageable);
 
-    @Query("SELECT f FROM FundraisingActivityModel f LEFT JOIN FETCH f.owner WHERE f.id = :id")
+    @Query("SELECT f FROM FundraisingActivityModel f LEFT JOIN FETCH f.owner LEFT JOIN FETCH f.fundraisingCategory WHERE f.id = :id")
     Optional<FundraisingActivityModel> findByIdWithOwner(@Param("id") UUID id);
 
     @Query("SELECT COUNT(f) FROM FundraisingActivityModel f WHERE f.createdAt >= :start AND f.createdAt < :end")
@@ -122,18 +122,37 @@ class FundraisingActivityImpl implements FundraisingActivityCustom {
     private EntityManager entityManager;
 
     private final UserAccount userAccountRepository;
-    private final ModelMapper modelMapper;
+    private final FundraisingCategory fundraisingCategoryRepository;
+
+    private static FundraisingCategoryModel resolveCategory(
+            FundraisingCategory fundraisingCategoryRepository, UUID categoryId) {
+        FundraisingCategoryModel category = fundraisingCategoryRepository.findById(categoryId)
+                .orElseThrow(() -> new FundraisingActivityException(HttpStatus.BAD_REQUEST, "Fundraising category not found"));
+        if (category.isDeleted()) {
+            throw new FundraisingActivityException(HttpStatus.BAD_REQUEST, "Fundraising category not found");
+        }
+        return category;
+    }
 
     @Override
     public FundraisingActivityModel createFundraisingActivity(String ownerUsername,
             CreateFundraisingActivityController.CreateFundraisingActivityRequest request) {
         UserAccountModel owner = userAccountRepository.findByUsername(ownerUsername)
                 .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND, "User account not found"));
-        FundraisingActivityModel entity = modelMapper.map(request, FundraisingActivityModel.class);
+        FundraisingCategoryModel category = resolveCategory(fundraisingCategoryRepository, request.getCategoryId());
+
+        FundraisingActivityModel entity = new FundraisingActivityModel();
+        entity.setTitle(request.getTitle().trim());
+        entity.setDescription(request.getDescription());
+        entity.setFundraisingCategory(category);
+        entity.setLocation(request.getLocation());
+        entity.setGoalAmount(request.getGoalAmount());
+        entity.setImageUrl(request.getImageUrl());
         entity.setOwner(owner);
         entity.setViewCount(0);
         entity.setFavouriteCount(0);
         entity.setCompletedAt(null);
+        entity.setCurrentAmount(request.getCurrentAmount() != null ? request.getCurrentAmount() : BigDecimal.ZERO);
         if (entity.getCurrentAmount() == null) {
             entity.setCurrentAmount(BigDecimal.ZERO);
         }
@@ -159,9 +178,10 @@ class FundraisingActivityImpl implements FundraisingActivityCustom {
             throw new FundraisingActivityException(HttpStatus.BAD_REQUEST,
                     "Cannot update a completed fundraising activity");
         }
+        FundraisingCategoryModel category = resolveCategory(fundraisingCategoryRepository, request.getCategoryId());
         entity.setTitle(request.getTitle().trim());
         entity.setDescription(request.getDescription());
-        entity.setCategory(request.getCategory());
+        entity.setFundraisingCategory(category);
         entity.setLocation(request.getLocation());
         entity.setGoalAmount(request.getGoalAmount());
         if (request.getCurrentAmount() != null) {

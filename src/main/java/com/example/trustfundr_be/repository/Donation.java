@@ -16,13 +16,13 @@ public interface Donation extends JpaRepository<DonationModel, UUID> {
 
     long countByCreatedAtBefore(Instant cutoff);
 
-    long countByDonorUsername(String username);
+    long countByDoneeUsername(String username);
 
-    @Query("SELECT d FROM DonationModel d LEFT JOIN FETCH d.fundraisingActivity WHERE d.donor.username = :username "
+    @Query("SELECT d FROM DonationModel d LEFT JOIN FETCH d.fundraisingActivity WHERE d.donee.username = :username "
             + "ORDER BY d.createdAt DESC")
-    List<DonationModel> findByDonorUsernameForHistory(@Param("username") String username);
+    List<DonationModel> findByDoneeUsernameForHistory(@Param("username") String username);
 
-    @Query("SELECT d FROM DonationModel d LEFT JOIN FETCH d.fundraisingActivity act WHERE d.donor.username = :username AND ("
+    @Query("SELECT d FROM DonationModel d LEFT JOIN FETCH d.fundraisingActivity act WHERE d.donee.username = :username AND ("
             + "(act IS NOT NULL AND (LOWER(act.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(act.description IS NOT NULL AND LOWER(act.description) LIKE LOWER(CONCAT('%', :q, '%'))))) OR "
             + "(d.memo IS NOT NULL AND LOWER(d.memo) LIKE LOWER(CONCAT('%', :q, '%')))) "

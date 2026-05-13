@@ -43,20 +43,20 @@ public class ViewUserProfileControllerTest {
         when(userProfileRepository.findAll(any(Sort.class))).thenReturn(List.of(userProfile));
 
         // Mock model mapper behavior
-        ViewUserProfileController.UserProfileResponse mockedResponse =
-                new ViewUserProfileController.UserProfileResponse();
+        ViewUserProfileController.ViewUserProfileResponse mockedResponse =
+                new ViewUserProfileController.ViewUserProfileResponse();
         mockedResponse.setId(profileId);
         mockedResponse.setName(name);
         mockedResponse.setDescription(description);
 
-        when(modelMapper.map(eq(userProfile), eq(ViewUserProfileController.UserProfileResponse.class)))
+        when(modelMapper.map(eq(userProfile), eq(ViewUserProfileController.ViewUserProfileResponse.class)))
                 .thenReturn(mockedResponse);
 
         // Create controller
         ViewUserProfileController controller = new ViewUserProfileController(userProfileRepository, modelMapper);
 
         // Invoke list method
-        List<ViewUserProfileController.UserProfileResponse> result = controller.listUserProfiles();
+        List<ViewUserProfileController.ViewUserProfileResponse> result = controller.listUserProfiles();
 
         // Assert response
         assertNotNull(result, "Result list should noty be null");
@@ -65,6 +65,6 @@ public class ViewUserProfileControllerTest {
 
         // Verify interactions
         verify(userProfileRepository).findAll(any(Sort.class));
-        verify(modelMapper).map(eq(userProfile), eq(ViewUserProfileController.UserProfileResponse.class));
+        verify(modelMapper).map(eq(userProfile), eq(ViewUserProfileController.ViewUserProfileResponse.class));
     }
 }

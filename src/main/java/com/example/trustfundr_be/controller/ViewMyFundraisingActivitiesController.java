@@ -47,6 +47,7 @@ public class ViewMyFundraisingActivitiesController {
         private UUID id;
         private String title;
         private String description;
+        private UUID categoryId;
         private String category;
         private String location;
         private BigDecimal goalAmount;

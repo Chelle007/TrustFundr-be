@@ -12,8 +12,10 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.stereotype.Service;
 
 import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.FundraisingCategoryModel;
 import com.example.trustfundr_be.model.UserAccountModel;
 import com.example.trustfundr_be.repository.FundraisingActivity;
+import com.example.trustfundr_be.repository.FundraisingCategory;
 import com.example.trustfundr_be.repository.UserAccount;
 
 import lombok.RequiredArgsConstructor;
@@ -27,14 +29,19 @@ public class FundraisingActivitySeeder {
 
     private final FundraisingActivity fundraisingActivityRepository;
     private final UserAccount userAccountRepository;
+    private final FundraisingCategory fundraisingCategoryRepository;
     private final Faker faker;
 
     public void seedFundraisingActivities() {
         long current = fundraisingActivityRepository.count();
         if (current < 10) {
             List<UserAccountModel> owners = new ArrayList<>(userAccountRepository.findAll());
+            List<FundraisingCategoryModel> categories = new ArrayList<>(fundraisingCategoryRepository.findAll());
             if (owners.isEmpty()) {
                 throw new IllegalStateException("No user accounts found; cannot seed fundraising activities");
+            }
+            if (categories.isEmpty()) {
+                throw new IllegalStateException("No fundraising categories found; cannot seed fundraising activities");
             }
 
             int remaining = (int) (TARGET_COUNT - current);
@@ -42,7 +49,8 @@ public class FundraisingActivitySeeder {
                 FundraisingActivityModel act = new FundraisingActivityModel();
                 act.setTitle(faker.book().title());
                 act.setDescription(faker.lorem().paragraph(4));
-                act.setCategory(faker.options().option("Medical", "Education", "Community", "Environment"));
+                act.setFundraisingCategory(
+                        categories.get(ThreadLocalRandom.current().nextInt(categories.size())));
                 act.setLocation(faker.address().city());
                 BigDecimal goal = BigDecimal.valueOf(ThreadLocalRandom.current().nextInt(5_000, 100_000));
                 act.setGoalAmount(goal);

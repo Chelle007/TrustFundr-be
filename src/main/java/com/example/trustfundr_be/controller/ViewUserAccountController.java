@@ -32,7 +32,7 @@ public class ViewUserAccountController {
 
     @Data
     @NoArgsConstructor
-    public static class UserAccountResponse {
+    public static class ViewUserAccountResponse {
         private UUID id;
         private String fullName;
         private String username;
@@ -44,16 +44,16 @@ public class ViewUserAccountController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     @Transactional(readOnly = true)
-    public List<UserAccountResponse> listUserAccounts() {
+    public List<ViewUserAccountResponse> listUserAccounts() {
         // Load all user accounts with profiles and map each to response
         return userAccountRepository.findAllWithUserProfileOrderByUsernameAsc().stream()
                 .map(this::toResponse)
                 .toList();
     }
 
-    private UserAccountResponse toResponse(UserAccountModel account) {
+    private ViewUserAccountResponse toResponse(UserAccountModel account) {
         // Map account fields to response
-        UserAccountResponse response = modelMapper.map(account, UserAccountResponse.class);
+        ViewUserAccountResponse response = modelMapper.map(account, ViewUserAccountResponse.class);
         
         // Set user profile id and name on response
         if (account.getUserProfile() != null) {

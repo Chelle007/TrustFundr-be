@@ -61,7 +61,7 @@ public class LoginController {
     public LoginResponse login(@Valid @RequestBody LoginRequest loginRequest, HttpServletRequest request) {
         // Fetch user account through repository
         UserAccountModel userAccount = userAccountRepository
-                .findByUsernameAndPassword(loginRequest.getUsername(), loginRequest.getPassword())
+                .login(loginRequest)
                 .orElseThrow(() -> new AuthException("Invalid username or password"));
 
         // Map user account to response

@@ -20,8 +20,8 @@ import lombok.Setter;
 public class DonationModel extends BaseModel {
 
     @ManyToOne(fetch = FetchType.LAZY)
-    @JoinColumn(name = "donor_account_id", nullable = false)
-    private UserAccountModel donor;
+    @JoinColumn(name = "donee_account_id", nullable = false)
+    private UserAccountModel donee;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "fundraising_activity_id", nullable = false)

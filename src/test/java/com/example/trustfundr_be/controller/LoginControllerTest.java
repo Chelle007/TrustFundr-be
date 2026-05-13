@@ -49,7 +49,7 @@ class LoginControllerTest {
         entity.setUsername(username);
         entity.setFullName("Test User");
 
-        when(userAccountRepository.findByUsernameAndPassword(username, "admin123")).thenReturn(Optional.of(entity));
+        when(userAccountRepository.login(any(LoginController.LoginRequest.class))).thenReturn(Optional.of(entity));
 
         LoginController.LoginResponse mapped = new LoginController.LoginResponse();
         mapped.setId(userId);
@@ -76,7 +76,7 @@ class LoginControllerTest {
 
     @Test
     void login_bad_credentials() {
-        when(userAccountRepository.findByUsernameAndPassword("admin", "wrong")).thenReturn(Optional.empty());
+        when(userAccountRepository.login(any(LoginController.LoginRequest.class))).thenReturn(Optional.empty());
 
         LoginController controller = new LoginController(userAccountRepository, modelMapper, jwtService);
 

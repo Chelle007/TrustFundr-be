@@ -34,7 +34,7 @@ public class DonationSeeder {
     /** If the DB already has donations but almost none older than a week, nudge some rows back in time once. */
     private static final int MIN_HISTORICAL_DONATIONS = 5;
     private static final int BACKFILL_CAP = 40;
-    /** Demo donee login is username {@code donee} / password {@code donee123} — not guaranteed by random donor pick. */
+    /** Demo donee login is username {@code donee} / password {@code donee123} — not guaranteed by random account pick. */
     private static final String DEMO_DONEE_USERNAME = "donee";
 
     private final Donation donationRepository;
@@ -51,16 +51,16 @@ public class DonationSeeder {
 
         long current = donationRepository.count();
         if (current < 10) {
-            List<UserAccountModel> donors = new ArrayList<>(userAccountRepository.findAll());
+            List<UserAccountModel> accounts = new ArrayList<>(userAccountRepository.findAll());
             List<FundraisingActivityModel> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
-            if (donors.isEmpty() || activities.isEmpty()) {
-                throw new IllegalStateException("Missing donors or activities; cannot seed donations");
+            if (accounts.isEmpty() || activities.isEmpty()) {
+                throw new IllegalStateException("Missing user accounts or activities; cannot seed donations");
             }
 
             int remaining = (int) (TARGET_COUNT - current);
             for (int i = 0; i < remaining; i++) {
                 DonationModel d = new DonationModel();
-                d.setDonor(donors.get(ThreadLocalRandom.current().nextInt(donors.size())));
+                d.setDonee(accounts.get(ThreadLocalRandom.current().nextInt(accounts.size())));
                 d.setFundraisingActivity(activities.get(ThreadLocalRandom.current().nextInt(activities.size())));
                 d.setAmount(randomAmount());
                 d.setMemo(ThreadLocalRandom.current().nextInt(5) == 0 ? null : faker.lorem().sentence(10));
@@ -76,10 +76,10 @@ public class DonationSeeder {
 
     /**
      * Ensures the seeded donee account (username {@code donee}, password {@code donee123}) has at least one
-     * donation for demo donation history. Bulk seeding picks donors at random, so this is explicit — not Faker.
+     * donation for demo donation history. Bulk seeding picks accounts at random, so this is explicit — not Faker.
      */
     private void ensureDemoDoneeHasAtLeastOneDonation() {
-        if (donationRepository.countByDonorUsername(DEMO_DONEE_USERNAME) > 0) {
+        if (donationRepository.countByDoneeUsername(DEMO_DONEE_USERNAME) > 0) {
             return;
         }
         UserAccountModel donee = userAccountRepository.findByUsernameIgnoreCase(DEMO_DONEE_USERNAME).orElse(null);
@@ -92,7 +92,7 @@ public class DonationSeeder {
         }
         FundraisingActivityModel activity = activities.get(ThreadLocalRandom.current().nextInt(activities.size()));
         DonationModel d = new DonationModel();
-        d.setDonor(donee);
+        d.setDonee(donee);
         d.setFundraisingActivity(activity);
         d.setAmount(randomAmount());
         d.setMemo(null);

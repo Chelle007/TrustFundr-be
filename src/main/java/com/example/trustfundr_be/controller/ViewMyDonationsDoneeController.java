@@ -51,7 +51,7 @@ public class ViewMyDonationsDoneeController {
     @Transactional(readOnly = true)
     public List<ViewMyDonationsDoneeResponse> viewMyDonations(@AuthenticationPrincipal UserDetails userDetails) {
         // Load this donee's donation history (newest first) and map each to response
-        return donationRepository.findByDonorUsernameForHistory(userDetails.getUsername()).stream()
+        return donationRepository.findByDoneeUsernameForHistory(userDetails.getUsername()).stream()
                 // Map donation to response
                 .map(d -> modelMapper.map(d, ViewMyDonationsDoneeResponse.class))
                 .toList();

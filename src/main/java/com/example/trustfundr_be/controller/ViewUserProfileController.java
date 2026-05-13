@@ -32,7 +32,7 @@ public class ViewUserProfileController {
 
     @Data
     @NoArgsConstructor
-    public static class UserProfileResponse {
+    public static class ViewUserProfileResponse {
         private UUID id;
         private String name;
         private String description;
@@ -42,10 +42,10 @@ public class ViewUserProfileController {
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping
     @Transactional(readOnly = true)
-    public List<UserProfileResponse> listUserProfiles() {
+    public List<ViewUserProfileResponse> listUserProfiles() {
         // Load all user profiles sorted by name and map each to response
         return userProfileRepository.findAll(Sort.by(Sort.Direction.ASC, "name")).stream()
-                .map(p -> modelMapper.map(p, UserProfileResponse.class))
+                .map(p -> modelMapper.map(p, ViewUserProfileResponse.class))
                 .toList();
     }
 }
