@@ -4,6 +4,7 @@ import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
+import org.springframework.context.annotation.Lazy;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
@@ -17,7 +18,6 @@ import com.example.trustfundr_be.model.UserAccountModel;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
-import lombok.RequiredArgsConstructor;
 
 public interface FundraisingActivityFavourite
         extends JpaRepository<FundraisingActivityFavouriteModel, UUID>, FundraisingActivityFavouriteCustom {
@@ -32,6 +32,10 @@ public interface FundraisingActivityFavourite
             + "(act.description IS NOT NULL AND LOWER(act.description) LIKE LOWER(CONCAT('%', :q, '%')))) "
             + "ORDER BY fav.createdAt DESC")
     List<FundraisingActivityFavouriteModel> searchByDoneeUsername(@Param("username") String username, @Param("q") String q);
+
+    @Query("SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN FETCH fav.fundraisingActivity act "
+            + "LEFT JOIN FETCH act.fundraisingCategory WHERE fav.id = :id")
+    Optional<FundraisingActivityFavouriteModel> findByIdWithFundraisingActivity(@Param("id") UUID id);
 }
 
 interface FundraisingActivityFavouriteCustom {
@@ -39,7 +43,6 @@ interface FundraisingActivityFavouriteCustom {
     FundraisingActivityFavouriteModel saveFavourite(String doneeUsername, UUID activityId);
 }
 
-@RequiredArgsConstructor
 class FundraisingActivityFavouriteImpl implements FundraisingActivityFavouriteCustom {
 
     @PersistenceContext
@@ -47,6 +50,16 @@ class FundraisingActivityFavouriteImpl implements FundraisingActivityFavouriteCu
 
     private final UserAccount userAccountRepository;
     private final FundraisingActivity fundraisingActivityRepository;
+    private final FundraisingActivityFavourite fundraisingActivityFavourites;
+
+    FundraisingActivityFavouriteImpl(
+            UserAccount userAccountRepository,
+            FundraisingActivity fundraisingActivityRepository,
+            @Lazy FundraisingActivityFavourite fundraisingActivityFavourites) {
+        this.userAccountRepository = userAccountRepository;
+        this.fundraisingActivityRepository = fundraisingActivityRepository;
+        this.fundraisingActivityFavourites = fundraisingActivityFavourites;
+    }
 
     @Override
     public FundraisingActivityFavouriteModel saveFavourite(String doneeUsername, UUID activityId) {
@@ -71,7 +84,9 @@ class FundraisingActivityFavouriteImpl implements FundraisingActivityFavouriteCu
         row.setFundraisingActivity(activity);
         entityManager.persist(row);
         entityManager.flush();
+        UUID favouriteId = row.getId();
         fundraisingActivityRepository.incrementFavouriteCountById(activityId);
-        return row;
+        return fundraisingActivityFavourites.findByIdWithFundraisingActivity(favouriteId)
+                .orElseThrow(() -> new FundraisingActivityException(HttpStatus.NOT_FOUND, "Favourite not found"));
     }
 }
