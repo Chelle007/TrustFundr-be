@@ -26,6 +26,8 @@ import net.datafaker.Faker;
 public class FundraisingActivitySeeder {
 
     private static final int TARGET_COUNT = 100;
+    /** Demo fundraiser login is username {@code fundraiser} / password {@code fundraiser123} — not guaranteed by random owner pick. */
+    private static final String DEMO_FUNDRAISER_USERNAME = "fundraiser";
 
     private final FundraisingActivity fundraisingActivityRepository;
     private final UserAccount userAccountRepository;
@@ -66,6 +68,61 @@ public class FundraisingActivitySeeder {
             }
         }
         backfillMissingActivityImages();
+        ensureDemoFundraiserHasCompletedActivity();
+    }
+
+    /**
+     * Ensures the seeded fundraiser account (username {@code fundraiser}, password {@code fundraiser123})
+     * owns at least one completed fundraising activity ({@code completed_at} set). Bulk seeding assigns
+     * owners and completion at random, so this is explicit — not Faker.
+     */
+    private void ensureDemoFundraiserHasCompletedActivity() {
+        if (!fundraisingActivityRepository
+                .findCompletedByOwnerUsernameOrderByCompletedAtDesc(DEMO_FUNDRAISER_USERNAME)
+                .isEmpty()) {
+            return;
+        }
+        UserAccountModel owner = userAccountRepository.findByUsernameIgnoreCase(DEMO_FUNDRAISER_USERNAME).orElse(null);
+        if (owner == null) {
+            return;
+        }
+
+        List<FundraisingActivityModel> active = fundraisingActivityRepository
+                .findActiveByOwnerUsernameOrderByCreatedAtDesc(DEMO_FUNDRAISER_USERNAME);
+        if (!active.isEmpty()) {
+            FundraisingActivityModel activity = active.get(0);
+            markCompleted(activity);
+            fundraisingActivityRepository.save(activity);
+            return;
+        }
+
+        List<FundraisingCategoryModel> categories = new ArrayList<>(fundraisingCategoryRepository.findAll());
+        if (categories.isEmpty()) {
+            return;
+        }
+
+        FundraisingActivityModel activity = new FundraisingActivityModel();
+        activity.setTitle("Community Shelter Renovation (Demo)");
+        activity.setDescription(
+                "Seeded completed campaign for the fundraiser demo account — safe to use in demos and walkthroughs.");
+        activity.setFundraisingCategory(categories.get(0));
+        activity.setLocation("Sydney");
+        BigDecimal goal = BigDecimal.valueOf(25_000);
+        activity.setGoalAmount(goal);
+        activity.setCurrentAmount(goal);
+        activity.setOwner(owner);
+        activity.setViewCount(420);
+        activity.setFavouriteCount(0);
+        activity.setImageUrl(sampleHeroImageUrl(1));
+        markCompleted(activity);
+        fundraisingActivityRepository.save(activity);
+    }
+
+    private static void markCompleted(FundraisingActivityModel act) {
+        act.setCompletedAt(Instant.now().minus(45, ChronoUnit.DAYS));
+        if (act.getGoalAmount() != null) {
+            act.setCurrentAmount(act.getGoalAmount());
+        }
     }
 
     /** Stable placeholder hero images for seeded campaigns (Lorem Picsum). */
