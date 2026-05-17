@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.model.dto.DoneeFundraisingActivitySummary;
+import com.example.trustfundr_be.model.dto.ImageUrlResponses;
 import com.example.trustfundr_be.repository.FundraisingActivityFavourite;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -56,8 +57,15 @@ public class SearchMyFundraisingActivityFavouritesDoneeController {
         return fundraisingActivityFavouriteRepository
                 .searchByDoneeUsername(userDetails.getUsername(), q.trim())
                 .stream()
-                // Map favourite row to response
-                .map(f -> modelMapper.map(f, SearchMyFundraisingActivityFavouritesDoneeResponse.class))
+                .map(f -> {
+                    SearchMyFundraisingActivityFavouritesDoneeResponse row =
+                            modelMapper.map(f, SearchMyFundraisingActivityFavouritesDoneeResponse.class);
+                    DoneeFundraisingActivitySummary activity = row.getFundraisingActivity();
+                    if (activity != null) {
+                        activity.setImageUrl(ImageUrlResponses.forBrowseList(activity.getImageUrl()));
+                    }
+                    return row;
+                })
                 .toList();
     }
 }

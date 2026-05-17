@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.model.dto.DoneeFundraisingActivitySummary;
+import com.example.trustfundr_be.model.dto.ImageUrlResponses;
 import com.example.trustfundr_be.repository.FundraisingActivityFavourite;
 
 import io.swagger.v3.oas.annotations.security.SecurityRequirement;
@@ -44,6 +45,15 @@ public class ViewMyFundraisingActivityFavouritesDoneeController {
 
     @SecurityRequirement(name = BEARER_AUTH_SCHEME)
     @PreAuthorize("hasRole('DONEE')")
+    @GetMapping("/favourite-activity-ids")
+    @Transactional(readOnly = true)
+    public List<UUID> favouriteActivityIds(@AuthenticationPrincipal UserDetails userDetails) {
+        return fundraisingActivityFavouriteRepository
+                .findActivityIdsByDoneeUsername(userDetails.getUsername());
+    }
+
+    @SecurityRequirement(name = BEARER_AUTH_SCHEME)
+    @PreAuthorize("hasRole('DONEE')")
     @GetMapping("/view-my-favourites")
     @Transactional(readOnly = true)
     public List<ViewMyFundraisingActivityFavouritesDoneeResponse> viewMyFavourites(
@@ -52,8 +62,15 @@ public class ViewMyFundraisingActivityFavouritesDoneeController {
         return fundraisingActivityFavouriteRepository
                 .findAllByDoneeUsernameOrderByCreatedAtDesc(userDetails.getUsername())
                 .stream()
-                // Map favourite row to response
-                .map(f -> modelMapper.map(f, ViewMyFundraisingActivityFavouritesDoneeResponse.class))
+                .map(f -> {
+                    ViewMyFundraisingActivityFavouritesDoneeResponse row =
+                            modelMapper.map(f, ViewMyFundraisingActivityFavouritesDoneeResponse.class);
+                    DoneeFundraisingActivitySummary activity = row.getFundraisingActivity();
+                    if (activity != null) {
+                        activity.setImageUrl(ImageUrlResponses.forBrowseList(activity.getImageUrl()));
+                    }
+                    return row;
+                })
                 .toList();
     }
 }

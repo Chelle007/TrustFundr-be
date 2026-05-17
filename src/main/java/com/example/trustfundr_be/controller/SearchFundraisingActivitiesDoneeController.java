@@ -17,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.trustfundr_be.model.FundraisingActivityModel;
+import com.example.trustfundr_be.model.dto.ImageUrlResponses;
 import com.example.trustfundr_be.model.dto.PageResponse;
 import com.example.trustfundr_be.repository.FundraisingActivity;
 
@@ -70,7 +71,12 @@ public class SearchFundraisingActivitiesDoneeController {
                 fundraisingActivityRepository.searchAllPublicPage(q.trim(), pageable);
         return new PageResponse<>(
                 result.getContent().stream()
-                        .map(a -> modelMapper.map(a, SearchFundraisingActivitiesDoneeResponse.class))
+                        .map(a -> {
+                            SearchFundraisingActivitiesDoneeResponse row =
+                                    modelMapper.map(a, SearchFundraisingActivitiesDoneeResponse.class);
+                            row.setImageUrl(ImageUrlResponses.forBrowseList(row.getImageUrl()));
+                            return row;
+                        })
                         .toList(),
                 result.getTotalElements(),
                 result.getTotalPages(),

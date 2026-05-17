@@ -22,11 +22,17 @@ import jakarta.persistence.PersistenceContext;
 public interface FundraisingActivityFavourite
         extends JpaRepository<FundraisingActivityFavouriteModel, UUID>, FundraisingActivityFavouriteCustom {
 
+    @Query("SELECT fav.fundraisingActivity.id FROM FundraisingActivityFavouriteModel fav "
+            + "WHERE fav.donee.username = :username")
+    List<UUID> findActivityIdsByDoneeUsername(@Param("username") String username);
+
     @Query("SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN FETCH fav.fundraisingActivity act "
+            + "LEFT JOIN FETCH act.fundraisingCategory "
             + "WHERE fav.donee.username = :username ORDER BY fav.createdAt DESC")
     List<FundraisingActivityFavouriteModel> findAllByDoneeUsernameOrderByCreatedAtDesc(@Param("username") String username);
 
     @Query("SELECT fav FROM FundraisingActivityFavouriteModel fav JOIN FETCH fav.fundraisingActivity act "
+            + "LEFT JOIN FETCH act.fundraisingCategory "
             + "WHERE fav.donee.username = :username AND ("
             + "LOWER(act.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
             + "(act.description IS NOT NULL AND LOWER(act.description) LIKE LOWER(CONCAT('%', :q, '%')))) "

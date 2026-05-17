@@ -21,6 +21,7 @@ import com.example.trustfundr_be.exception.FundraisingActivityException;
 import com.example.trustfundr_be.model.FundraisingActivityModel;
 import com.example.trustfundr_be.model.FundraisingCategoryModel;
 import com.example.trustfundr_be.model.UserAccountModel;
+import com.example.trustfundr_be.model.dto.DoneeFundraisingActivityBrowseRow;
 
 import jakarta.persistence.EntityManager;
 import jakarta.persistence.PersistenceContext;
@@ -72,6 +73,18 @@ public interface FundraisingActivity
     Page<FundraisingActivityModel> findAllPublicPage(Pageable pageable);
 
     @Query(
+            "SELECT new com.example.trustfundr_be.model.dto.DoneeFundraisingActivityBrowseRow("
+                    + "f.id, f.title, c.id, c.name, f.location, f.goalAmount, f.currentAmount, "
+                    + "CASE WHEN f.imageUrl IS NULL THEN NULL "
+                    + "WHEN LENGTH(f.imageUrl) > 2048 THEN NULL "
+                    + "WHEN SUBSTRING(f.imageUrl, 1, 5) = 'data:' THEN NULL "
+                    + "ELSE f.imageUrl END, "
+                    + "f.createdAt, f.updatedAt) "
+                    + "FROM FundraisingActivityModel f JOIN f.fundraisingCategory c "
+                    + "ORDER BY f.createdAt DESC")
+    Page<DoneeFundraisingActivityBrowseRow> findAllPublicBrowsePage(Pageable pageable);
+
+    @Query(
             value = "SELECT f FROM FundraisingActivityModel f WHERE "
                     + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
                     + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
@@ -84,6 +97,27 @@ public interface FundraisingActivity
                     + "(f.fundraisingCategory IS NOT NULL AND LOWER(f.fundraisingCategory.name) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
                     + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))")
     Page<FundraisingActivityModel> searchAllPublicPage(@Param("q") String q, Pageable pageable);
+
+    @Query(
+            value = "SELECT new com.example.trustfundr_be.model.dto.DoneeFundraisingActivityBrowseRow("
+                    + "f.id, f.title, c.id, c.name, f.location, f.goalAmount, f.currentAmount, "
+                    + "CASE WHEN f.imageUrl IS NULL THEN NULL "
+                    + "WHEN LENGTH(f.imageUrl) > 2048 THEN NULL "
+                    + "WHEN SUBSTRING(f.imageUrl, 1, 5) = 'data:' THEN NULL "
+                    + "ELSE f.imageUrl END, "
+                    + "f.createdAt, f.updatedAt) "
+                    + "FROM FundraisingActivityModel f JOIN f.fundraisingCategory c WHERE "
+                    + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "LOWER(c.name) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%'))) "
+                    + "ORDER BY f.createdAt DESC",
+            countQuery = "SELECT count(f) FROM FundraisingActivityModel f JOIN f.fundraisingCategory c WHERE "
+                    + "LOWER(f.title) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.description IS NOT NULL AND LOWER(f.description) LIKE LOWER(CONCAT('%', :q, '%'))) OR "
+                    + "LOWER(c.name) LIKE LOWER(CONCAT('%', :q, '%')) OR "
+                    + "(f.location IS NOT NULL AND LOWER(f.location) LIKE LOWER(CONCAT('%', :q, '%')))")
+    Page<DoneeFundraisingActivityBrowseRow> searchAllPublicBrowsePage(@Param("q") String q, Pageable pageable);
 
     @Query("SELECT f FROM FundraisingActivityModel f LEFT JOIN FETCH f.owner LEFT JOIN FETCH f.fundraisingCategory WHERE f.id = :id")
     Optional<FundraisingActivityModel> findByIdWithOwner(@Param("id") UUID id);
