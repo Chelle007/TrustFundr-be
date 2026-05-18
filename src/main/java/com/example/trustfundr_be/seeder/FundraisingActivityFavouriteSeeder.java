@@ -33,7 +33,7 @@ public class FundraisingActivityFavouriteSeeder {
     @Transactional
     public void seedFavourites() {
         long current = favouriteRepository.count();
-        if (current >= 10) {
+        if (current >= TARGET_COUNT) {
             return;
         }
 

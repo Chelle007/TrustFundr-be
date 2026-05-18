@@ -50,7 +50,7 @@ public class DonationSeeder {
         maybeBackfillSparseHistoricalTimestamps();
 
         long current = donationRepository.count();
-        if (current < 10) {
+        if (current < TARGET_COUNT) {
             List<UserAccountModel> accounts = new ArrayList<>(userAccountRepository.findAll());
             List<FundraisingActivityModel> activities = new ArrayList<>(fundraisingActivityRepository.findAll());
             if (accounts.isEmpty() || activities.isEmpty()) {

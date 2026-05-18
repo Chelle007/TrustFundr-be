@@ -36,7 +36,7 @@ public class FundraisingActivitySeeder {
 
     public void seedFundraisingActivities() {
         long current = fundraisingActivityRepository.count();
-        if (current < 10) {
+        if (current < TARGET_COUNT) {
             List<UserAccountModel> owners = new ArrayList<>(userAccountRepository.findAll());
             List<FundraisingCategoryModel> categories = new ArrayList<>(fundraisingCategoryRepository.findAll());
             if (owners.isEmpty()) {
