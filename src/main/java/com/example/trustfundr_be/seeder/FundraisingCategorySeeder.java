@@ -21,16 +21,14 @@ public class FundraisingCategorySeeder {
 
     public void seedFundraisingCategories() {
         long current = fundraisingCategoryRepository.count();
-        if (current >= 10) {
-            return;
-        }
-
-        int remaining = (int) (TARGET_COUNT - current);
-        for (int i = 0; i < remaining; i++) {
-            FundraisingCategoryModel c = new FundraisingCategoryModel();
-            c.setName(generateUniqueName());
-            c.setDescription(faker.lorem().sentence(12, 6));
-            fundraisingCategoryRepository.save(c);
+        if (current < TARGET_COUNT) {
+            int remaining = (int) (TARGET_COUNT - current);
+            for (int i = 0; i < remaining; i++) {
+                FundraisingCategoryModel category = new FundraisingCategoryModel();
+                category.setName(generateUniqueName());
+                category.setDescription(faker.lorem().sentence(12, 6));
+                fundraisingCategoryRepository.save(category);
+            }
         }
     }
 
