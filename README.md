@@ -1,41 +1,47 @@
 # trustfundr-be
 
-Backend service for TrustFundr built with **Java 21**, **Spring Boot**, **Spring Security**, **Spring Data JPA**, and **PostgreSQL**.
+Backend API for [TrustFundr](../TrustFundr/) — **Java 21**, **Spring Boot**, **Spring Security (JWT)**, **Spring Data JPA**, and **PostgreSQL**.
 
 ## Requirements
 
-- **Java**: 21
-- **Database**: PostgreSQL (local or hosted)
+- **Java** 21
+- **PostgreSQL** (local install or hosted, e.g. Supabase)
 
 ## Setup
 
-This project loads environment variables from a local `.env` file (see `TrustfundrBeApplication.java`).
+Environment variables are loaded from a `.env` file in this directory (`@PropertySource` on `TrustfundrBeApplication`). **Run Maven commands from this folder** so `user.dir` resolves to the correct path.
 
-1. Create a `.env` file in the project root (it is gitignored).
-2. Add the required variables:
+1. Copy the example file:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+2. Edit `.env` with your database credentials and a JWT secret (at least 32 bytes for HS256).
+
+### Local PostgreSQL example
 
 ```env
-# CORS
-ALLOWED_ORIGIN=http://localhost:5173
+ALLOWED_ORIGIN=http://localhost:3000
 
-# Database
 DB_URL=jdbc:postgresql://localhost:5432/trustfundr
 DB_USERNAME=postgres
 DB_PASSWORD=your_password
-# e.g. create-drop | update | validate
 DB_UPDATE=update
-
-# Swagger / OpenAPI
-API_DOCS=/v1/api-docs
-API_DOCS_HTML=/swagger-ui.html
-DEV_URL=http://localhost:8080
-STG_URL=http://localhost:8080
-PROD_URL=http://localhost:8080
-
-# Optional SQL logging
-JPA_SHOW_SQL=false
-JPA_FORMAT_SQL=false
 ```
+
+### Hosted PostgreSQL (e.g. Supabase)
+
+Use the pooler connection string from your provider and include SSL if required:
+
+```env
+DB_URL=jdbc:postgresql://your-host:5432/postgres?sslmode=require
+DB_USERNAME=your_user
+DB_PASSWORD=your_password
+DB_UPDATE=update
+```
+
+See [`.env.example`](.env.example) for the full list of variables.
 
 ## Run locally
 
@@ -43,7 +49,26 @@ JPA_FORMAT_SQL=false
 ./mvnw spring-boot:run
 ```
 
-The app defaults to port **8080** (unless you override `server.port`).
+The API listens on **http://localhost:8080** by default.
+
+On startup, `DataInitializer` runs seeders (profiles, accounts, categories, activities, donations, favourites). Default logins for development:
+
+| Role | Username | Password |
+|------|----------|----------|
+| Admin | `admin` | `admin123` |
+| Donee | `donee` | `donee123` |
+| Fundraiser | `fundraiser` | `fundraiser123` |
+| Platform manager | `platform` | `platform123` |
+
+Additional faker data is generated up to the configured targets (e.g. 100 accounts).
+
+## Full stack with the frontend
+
+1. Start this backend (`./mvnw spring-boot:run`).
+2. In [`../TrustFundr`](../TrustFundr/), run `npm install` and `npm run dev`.
+3. Open **http://localhost:3000** and log in with a seeded account.
+
+Set `ALLOWED_ORIGIN=http://localhost:3000` so the Next.js app can call the API. The default in `application.properties` also allows `http://127.0.0.1:3000`.
 
 ## Tests
 
@@ -57,12 +82,11 @@ The app defaults to port **8080** (unless you override `server.port`).
 ./mvnw clean package
 ```
 
-The jar will be under `target/`.
+The JAR is written to `target/`.
 
 ## API docs (Swagger)
 
-With the default `.env` values above:
+With default `.env` values:
 
-- **OpenAPI JSON**: `http://localhost:8080/v1/api-docs`
-- **Swagger UI**: `http://localhost:8080/swagger-ui.html`
-
+- **OpenAPI JSON**: http://localhost:8080/v1/api-docs
+- **Swagger UI**: http://localhost:8080/swagger-ui.html
